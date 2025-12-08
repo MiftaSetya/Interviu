@@ -1,0 +1,7 @@
+{
+  "name": "InterviewAI - Live Practice",
+  "description": "A flexible, conversational AI interview practice tool for jobs and scholarships using Gemini Live API.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
