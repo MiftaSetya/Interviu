@@ -25,22 +25,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     {/* Badge */}
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 backdrop-blur-sm border border-primary/20 mb-8 animate-pulse">
                         <Sparkles className="w-4 h-4 text-primary" />
-                        <span className="text-sm text-slate-300">AI-Powered Interview Practice</span>
+                        <span className="text-sm text-slate-300">Latihan Wawancara Berbasis AI</span>
                     </div>
 
                     {/* Main Heading */}
                     <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
                         <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-pulse-slow">
-                            Master Your Next
+                            Kuasai Wawancara
                         </span>
                         <br />
-                        <span className="text-white">Interview with AI</span>
+                        <span className="text-white">Impianmu dengan AI</span>
                     </h1>
 
                     {/* Subheading */}
                     <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-                        Practice realistic interviews powered by Gemini Live.
-                        Get instant feedback, improve your skills, and land your dream job or scholarship.
+                        Latihan wawancara realistis dengan teknologi Gemini Live berbahasa Indonesia.
+                        Dapatkan feedback instan, tingkatkan kemampuan, dan raih pekerjaan atau beasiswa impianmu.
                     </p>
 
                     {/* CTA Buttons */}
@@ -49,14 +49,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             onClick={onGetStarted}
                             className="group px-8 py-4 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 hover:shadow-2xl hover:shadow-primary/50 flex items-center gap-3"
                         >
-                            Get Started
+                            Mulai Sekarang
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </button>
                         <a
                             href="#features"
                             className="px-8 py-4 bg-surface/50 backdrop-blur-sm border border-slate-700 rounded-xl text-white font-semibold text-lg transition-all hover:border-primary/50 hover:bg-surface/80"
                         >
-                            Learn More
+                            Pelajari Lebih Lanjut
                         </a>
                     </div>
 
@@ -64,20 +64,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
                         <FeatureCard
                             icon={<Mic className="w-8 h-8" />}
-                            title="Voice Interaction"
-                            description="Natural conversation with AI interviewer using advanced speech recognition"
+                            title="Interaksi Suara"
+                            description="Percakapan natural dengan AI interviewer menggunakan pengenalan suara canggih"
                             gradient="from-primary/10 to-primary/5"
                         />
                         <FeatureCard
                             icon={<Brain className="w-8 h-8" />}
-                            title="Smart Feedback"
-                            description="Get intelligent insights and personalized tips to improve your answers"
+                            title="Feedback Cerdas"
+                            description="Dapatkan wawasan pintar dan tips personal untuk meningkatkan jawaban Anda"
                             gradient="from-secondary/10 to-secondary/5"
                         />
                         <FeatureCard
                             icon={<Zap className="w-8 h-8" />}
-                            title="Instant Practice"
-                            description="Start practicing immediately for job interviews or scholarships"
+                            title="Latihan Instan"
+                            description="Mulai latihan segera untuk wawancara kerja atau beasiswa"
                             gradient="from-primary/10 to-secondary/5"
                         />
                     </div>
@@ -98,10 +98,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
                         {/* Links */}
                         <div className="flex gap-8 text-sm text-slate-400">
-                            <a href="#" className="hover:text-primary transition-colors">About</a>
-                            <a href="#" className="hover:text-primary transition-colors">Features</a>
-                            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-                            <a href="#" className="hover:text-primary transition-colors">Contact</a>
+                            <a href="#" className="hover:text-primary transition-colors">Tentang</a>
+                            <a href="#" className="hover:text-primary transition-colors">Fitur</a>
+                            <a href="#" className="hover:text-primary transition-colors">Privasi</a>
+                            <a href="#" className="hover:text-primary transition-colors">Kontak</a>
                         </div>
 
                         {/* Social Links */}
@@ -114,7 +114,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
                     {/* Copyright */}
                     <div className="mt-8 pt-6 border-t border-slate-800 text-center text-sm text-slate-500">
-                        <p>© 2025 Interviu. Powered by <span className="text-primary">Gemini Live</span>. All rights reserved.</p>
+                        <p>© 2025 Interviu. Didukung oleh <span className="text-primary">Gemini Live</span>. Hak cipta dilindungi.</p>
                     </div>
                 </div>
             </footer>

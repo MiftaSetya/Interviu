@@ -44,7 +44,7 @@ const App: React.FC = () => {
               onClick={handleGetStarted}
               className="px-4 py-2 text-sm font-semibold text-primary hover:text-white transition-colors"
             >
-              Sign In
+              Masuk
             </button>
           </header>
 

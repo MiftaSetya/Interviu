@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { InterviewConfig, InterviewType } from '../types';
 import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/audioUtils';
@@ -36,7 +36,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
-    
+
     // Stop all scheduled audio
     scheduledSourcesRef.current.forEach(source => {
       try {
@@ -63,20 +63,13 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       streamRef.current = null;
     }
 
-    // Close session (we can't explicitly close the promise-based session easily without the object, 
-    // but the connection drops when context/callbacks are destroyed usually, or we just reset state)
-    // The library examples show using `session.close()` if we had the session object stored. 
-    // Since we only have the promise, we rely on the `onclose` callback logic mostly.
-    
-    // Ideally we should store the session object if possible, but the prompt uses sessionPromise.
-    // We will attempt to close if we have the session resolution.
+    // Close session
     if (sessionPromiseRef.current) {
-        sessionPromiseRef.current.then(session => {
-             // Try to close if method exists
-             if(session.close) session.close();
-        }).catch(() => {});
+      sessionPromiseRef.current.then(session => {
+        if (session.close) session.close();
+      }).catch(() => { });
     }
-    
+
     setIsConnected(false);
     nextStartTimeRef.current = 0;
     setVolumeLevel(0);
@@ -101,26 +94,25 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       // Setup Visualizer Analyser
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
-      
-      // Connect Analyser to Destination (so we can see what the AI says)
-      // Note: We'll connect the sources to this analyser later
 
       // Get Mic Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
       // Construct System Instruction based on Config
-      let systemInstruction = `You are an expert interviewer conducting a ${config.type === InterviewType.JOB ? 'Job' : 'Scholarship'} interview. 
-      The user is applying for: ${config.roleOrScholarshipName} at ${config.companyOrOrg}. 
-      ${config.experienceLevel ? `Experience Level: ${config.experienceLevel}.` : ''}
-      ${config.focusArea ? `Focus on: ${config.focusArea}.` : ''}
+      let systemInstruction = `Kamu adalah seorang pewawancara profesional yang sedang melakukan wawancara ${config.type === InterviewType.JOB ? 'Pekerjaan' : 'Beasiswa'}. 
+      Kandidat sedang melamar untuk: ${config.roleOrScholarshipName} di ${config.companyOrOrg}. 
+      ${config.experienceLevel ? `Tingkat pengalaman: ${config.experienceLevel}.` : ''}
+      ${config.focusArea ? `Fokus pada: ${config.focusArea}.` : ''}
       
-      Your goal is to simulate a realistic, professional, yet supportive interview environment. 
-      1. Start by welcoming the candidate and asking them to introduce themselves.
-      2. Ask ONE question at a time. Wait for the user's response.
-      3. Listen actively. If the answer is short, ask a follow-up. If it's good, acknowledge it briefly and move to the next relevant question.
-      4. Keep your responses concise and conversational (spoken style). Avoid long monologues. 
-      5. If the user asks for feedback, provide constructive, brief feedback, then return to the interview flow.
+      Tujuanmu adalah menciptakan suasana wawancara yang realistis, profesional, namun tetap mendukung kandidat. 
+      1. Mulai dengan menyambut kandidat dan minta mereka untuk memperkenalkan diri dalam bahasa Indonesia.
+      2. Ajukan SATU pertanyaan dalam satu waktu. Tunggu jawaban kandidat.
+      3. Dengarkan dengan aktif. Jika jawabannya singkat, ajukan pertanyaan lanjutan. Jika jawabannya bagus, berikan apresiasi singkat lalu lanjut ke pertanyaan berikutnya.
+      4. Buat responmu ringkas dan natural seperti percakapan sehari-hari dalam bahasa Indonesia. Hindari monolog panjang.
+      5. Jika kandidat meminta feedback, berikan feedback yang konstruktif dan singkat dalam bahasa Indonesia, lalu kembali ke alur wawancara.
+      6. Gunakan bahasa Indonesia yang baik dan benar, tapi tetap santai dan natural.
+      7. Jangan gunakan bahasa Inggris sama sekali, kecuali untuk istilah teknis yang memang tidak ada padanan bahasa Indonesianya.
       `;
 
       // Connect to Gemini Live
@@ -130,37 +122,21 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
           onopen: () => {
             setIsConnected(true);
             onConnect?.();
-            
+
             // Start Audio Streaming
             if (!inputAudioContextRef.current || !streamRef.current) return;
-            
+
             const source = inputAudioContextRef.current.createMediaStreamSource(streamRef.current);
             sourceRef.current = source;
-            
+
             // ScriptProcessor for raw PCM access
             const scriptProcessor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
             processorRef.current = scriptProcessor;
 
             scriptProcessor.onaudioprocess = (e) => {
               if (!isMicOn) return; // Mute logic
-              
+
               const inputData = e.inputBuffer.getChannelData(0);
-              
-              // Calculate volume for visualizer (Input side)
-              // We want to visualize WHO is talking. 
-              // Simple approach: Root Mean Square (RMS) of input buffer
-              let sum = 0;
-              for (let i = 0; i < inputData.length; i++) {
-                sum += inputData[i] * inputData[i];
-              }
-              const rms = Math.sqrt(sum / inputData.length);
-              // Update state only if it's significant to reduce renders? 
-              // Better: Update a ref or use the AnimationFrame loop to read the Analyser.
-              // Since this is input data, we can just push it to the live session.
-              // For visualization, we'll rely on the analyser attached to output for AI, 
-              // and maybe a separate analyser for input if we want dual viz. 
-              // For now, let's just push data.
-              
               const pcmBlob = createPcmBlob(inputData);
               sessionPromise.then(session => {
                 session.sendRealtimeInput({ media: pcmBlob });
@@ -174,43 +150,43 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio && audioContextRef.current) {
-               // Update cursor
-               nextStartTimeRef.current = Math.max(
-                 nextStartTimeRef.current,
-                 audioContextRef.current.currentTime
-               );
-               
-               const audioBuffer = await decodeAudioData(
-                 base64ToUint8Array(base64Audio),
-                 audioContextRef.current,
-                 24000,
-                 1
-               );
+              // Update cursor
+              nextStartTimeRef.current = Math.max(
+                nextStartTimeRef.current,
+                audioContextRef.current.currentTime
+              );
 
-               const source = audioContextRef.current.createBufferSource();
-               source.buffer = audioBuffer;
-               
-               // Connect to Analyser (for visualization) and Destination (for hearing)
-               if (analyserRef.current) {
-                   source.connect(analyserRef.current);
-                   analyserRef.current.connect(audioContextRef.current.destination);
-               } else {
-                   source.connect(audioContextRef.current.destination);
-               }
+              const audioBuffer = await decodeAudioData(
+                base64ToUint8Array(base64Audio),
+                audioContextRef.current,
+                24000,
+                1
+              );
 
-               source.onended = () => {
-                 scheduledSourcesRef.current.delete(source);
-               };
+              const source = audioContextRef.current.createBufferSource();
+              source.buffer = audioBuffer;
 
-               source.start(nextStartTimeRef.current);
-               nextStartTimeRef.current += audioBuffer.duration;
-               scheduledSourcesRef.current.add(source);
+              // Connect to Analyser (for visualization) and Destination (for hearing)
+              if (analyserRef.current) {
+                source.connect(analyserRef.current);
+                analyserRef.current.connect(audioContextRef.current.destination);
+              } else {
+                source.connect(audioContextRef.current.destination);
+              }
+
+              source.onended = () => {
+                scheduledSourcesRef.current.delete(source);
+              };
+
+              source.start(nextStartTimeRef.current);
+              nextStartTimeRef.current += audioBuffer.duration;
+              scheduledSourcesRef.current.add(source);
             }
 
             // Handle Interruption
             if (message.serverContent?.interrupted) {
               scheduledSourcesRef.current.forEach(src => {
-                  try { src.stop(); } catch(e){}
+                try { src.stop(); } catch (e) { }
               });
               scheduledSourcesRef.current.clear();
               nextStartTimeRef.current = 0;
@@ -228,12 +204,12 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } // 'Puck' is often good for professional male, 'Kore' female.
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
           },
           systemInstruction: systemInstruction,
         }
       });
-      
+
       sessionPromiseRef.current = sessionPromise;
 
       // Start Visualization Loop
@@ -241,11 +217,10 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
         if (!analyserRef.current) return;
         const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
         analyserRef.current.getByteFrequencyData(dataArray);
-        
-        // Calculate average volume from frequency data
+
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
         setVolumeLevel(average); // 0 - 255
-        
+
         animationFrameRef.current = requestAnimationFrame(updateVisualizer);
       };
       updateVisualizer();
@@ -255,12 +230,10 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       onError?.(err instanceof Error ? err : new Error("Failed to start session"));
       cleanup();
     }
-  }, [config, isMicOn, onError, cleanup]); // Dependencies
+  }, [config, isMicOn, onConnect, onError, cleanup]);
 
   const toggleMic = useCallback(() => {
     setIsMicOn(prev => !prev);
-    // Note: This only stops *sending* data in the process callback.
-    // The stream remains active.
   }, []);
 
   const disconnect = useCallback(() => {
