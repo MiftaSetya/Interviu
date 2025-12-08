@@ -5,7 +5,6 @@ import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/aud
 
 // Model configuration
 const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-09-2025';
-
 interface UseGeminiLiveProps {
   config: InterviewConfig | null;
   onConnect?: () => void;
@@ -18,6 +17,10 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   const [isMicOn, setIsMicOn] = useState(true);
   const [volumeLevel, setVolumeLevel] = useState(0); // For visualizer (0-100)
 
+  // Feedback state
+  const [feedbackText, setFeedbackText] = useState<string>("");
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
+
   // Refs for audio handling to avoid re-renders
   const audioContextRef = useRef<AudioContext | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -27,6 +30,9 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   const nextStartTimeRef = useRef<number>(0);
   const scheduledSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
+
+  // Text capture buffer
+  const transcriptRef = useRef<string>("");
 
   // Analyser for visualizer
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -147,6 +153,13 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             scriptProcessor.connect(inputAudioContextRef.current.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
+            // Handle Text Output
+            const textPart = message.serverContent?.modelTurn?.parts?.find(p => p.text)?.text;
+            if(textPart) {
+              transcriptRef.current += textPart + "\n";
+              setFeedbackText(textPart);
+            }
+
             // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio && audioContextRef.current) {
@@ -202,7 +215,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
           }
         },
         config: {
-          responseModalities: [Modality.AUDIO],
+          responseModalities: [Modality.AUDIO, Modality.TEXT],
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
           },
@@ -232,6 +245,44 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     }
   }, [config, isMicOn, onConnect, onError, cleanup]);
 
+  // Feedback Request
+  const requestFeedback = useCallback(async () => {
+    if(!sessionPromiseRef.current) return;
+
+    setIsGeneratingFeedback(true);
+    setFeedbackText("");
+
+    const feedbackPrompt = `
+      Analisis seluruh percakapan wawancara yang telah terjadi.
+      Berikan hasil dalam format berikut:
+
+      === RINGKASAN WAWANCARA ===
+      [ringkasan 3–5 kalimat]
+
+      === KELEBIHAN ===
+      - poin 1
+      - poin 2
+
+      === KEKURANGAN ===
+      - poin 1
+      - poin 2
+
+      === SKOR WAWANCARA (0-100) ===
+      beri angka
+
+      === SARAN PERBAIKAN ===
+      - poin 1
+      - poin 2
+
+      Semua dalam bahasa Indonesia.
+    `;
+
+    const session = await sessionPromiseRef.current;
+    await session.send({ text: feedbackPrompt });
+
+    setIsGeneratingFeedback(false);
+  }, []);
+
   const toggleMic = useCallback(() => {
     setIsMicOn(prev => !prev);
   }, []);
@@ -246,6 +297,9 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     isConnected,
     isMicOn,
     toggleMic,
-    volumeLevel
+    volumeLevel,
+    requestFeedback,
+    feedbackText,
+    isGeneratingFeedback
   };
 };
