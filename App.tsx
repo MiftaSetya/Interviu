@@ -28,14 +28,14 @@ const App: React.FC = () => {
         {/* Navbar */}
         <header className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-primary to-secondary p-2 rounded-lg">
+            {/* <div className="bg-gradient-to-tr from-primary to-secondary p-2 rounded-lg">
               <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">InterviewAI</h1>
+            </div> */}
+            <h1 className="text-2xl font-bold tracking-tight">Interviu</h1>
           </div>
-          <div className="text-sm text-slate-400">
+          {/* <div className="text-sm text-slate-400">
             Powered by Gemini Live
-          </div>
+          </div> */}
         </header>
 
         {/* Main Content */}
@@ -48,9 +48,7 @@ const App: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="p-6 text-center text-slate-600 text-sm">
-          &copy; {new Date().getFullYear()} InterviewAI. Practice makes perfect.
-        </footer>
+      
       </div>
     </div>
   );
