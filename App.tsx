@@ -46,7 +46,7 @@ const App: React.FC = () => {
       <div className="relative z-10 flex flex-col min-h-screen">
         <header className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => !config && setShowLanding(true)}>
-            <h1 className="text-3xl font-bold tracking-tight">Interviu</h1>
+            {/* <h1 className="text-3xl font-bold tracking-tight">Interviu</h1> */}
           </div>
         </header>
 

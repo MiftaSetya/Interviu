@@ -41,7 +41,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
           <input
             required
             type="text"
-            value={role}
+            value={type}
             onChange={(e) => setType(e.target.value)}
             placeholder={"contoh: Pekerjaan, Beasiswa"}
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
