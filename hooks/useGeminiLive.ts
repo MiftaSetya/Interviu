@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { InterviewConfig, InterviewType } from '../types';
+import { InterviewConfig } from '../types';
 import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/audioUtils';
 
 // Model configuration
@@ -100,7 +100,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       streamRef.current = stream;
 
       // Construct System Instruction based on Config
-      let systemInstruction = `Kamu adalah seorang pewawancara profesional yang sedang melakukan wawancara ${config.type === InterviewType.JOB ? 'Pekerjaan' : 'Beasiswa'}. 
+      let systemInstruction = `Kamu adalah seorang pewawancara profesional yang sedang melakukan wawancara ${config.type}. 
       Kandidat sedang melamar untuk: ${config.roleOrScholarshipName} di ${config.companyOrOrg}. 
       ${config.experienceLevel ? `Tingkat pengalaman: ${config.experienceLevel}.` : ''}
       ${config.focusArea ? `Fokus pada: ${config.focusArea}.` : ''}

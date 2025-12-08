@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { InterviewConfig, InterviewType } from '../types';
-import { Briefcase, GraduationCap, ArrowRight } from 'lucide-react';
+import { InterviewConfig } from '../types';
+import {ArrowRight } from 'lucide-react';
 
 interface ConfigFormProps {
   onStart: (config: InterviewConfig) => void;
 }
 
 const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
-  const [type, setType] = useState<InterviewType>(InterviewType.JOB);
+  const [type, setType] = useState("");
   const [role, setRole] = useState('');
   const [company, setCompany] = useState('');
   const [experience, setExperience] = useState('');
@@ -16,7 +16,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onStart({
-      type,
+      type: type,
       roleOrScholarshipName: role,
       companyOrOrg: company,
       experienceLevel: experience,
@@ -33,69 +33,58 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
         <p className="text-slate-400">Konfigurasi partner latihan AI Anda</p>
       </div>
 
-      <div className="flex gap-4 mb-6">
-        <button
-          type="button"
-          onClick={() => setType(InterviewType.JOB)}
-          className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${type === InterviewType.JOB
-              ? 'border-primary bg-primary/10 text-white'
-              : 'border-slate-700 hover:border-slate-600 text-slate-400'
-            }`}
-        >
-          <Briefcase className="w-6 h-6 mb-2" />
-          <span className="font-semibold">Pekerjaan</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setType(InterviewType.SCHOLARSHIP)}
-          className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${type === InterviewType.SCHOLARSHIP
-              ? 'border-secondary bg-secondary/10 text-white'
-              : 'border-slate-700 hover:border-slate-600 text-slate-400'
-            }`}
-        >
-          <GraduationCap className="w-6 h-6 mb-2" />
-          <span className="font-semibold">Beasiswa</span>
-        </button>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">
-            {type === InterviewType.JOB ? 'Posisi / Jabatan' : 'Nama Beasiswa'}
+            Tipe Wawancara
+          </label>
+          <input
+            required
+            type="text"
+            value={role}
+            onChange={(e) => setType(e.target.value)}
+            placeholder={"contoh: Pekerjaan, Beasiswa"}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300 mb-1">
+            Posisi / Jabatan / Nama Beasiswa
           </label>
           <input
             required
             type="text"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            placeholder={type === InterviewType.JOB ? "contoh: Senior Frontend Engineer" : "contoh: Beasiswa LPDP"}
+            placeholder={"contoh: Frontend Developer, Beasiswa Unggulan"}
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">
-            {type === InterviewType.JOB ? 'Perusahaan / Organisasi' : 'Universitas / Negara Tujuan'}
+            Perusahaan / Organisasi / Universitas
           </label>
           <input
             required
             type="text"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder={type === InterviewType.JOB ? "contoh: Google" : "contoh: University of Oxford"}
+            placeholder={"contoh: Google, Universitas Indonesia"}
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
           />
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">
-            {type === InterviewType.JOB ? 'Tingkat Pengalaman (Opsional)' : 'Latar Belakang Akademik (Opsional)'}
+            Tingkat Pengalaman / Latar Belakang Akademik (Opsional)
           </label>
           <input
             type="text"
             value={experience}
             onChange={(e) => setExperience(e.target.value)}
-            placeholder={type === InterviewType.JOB ? "contoh: 5 tahun, Lead" : "contoh: S1 Hukum"}
+            placeholder={"contoh: 5 tahun, Lead, S1 Hukum"}
             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
           />
         </div>
