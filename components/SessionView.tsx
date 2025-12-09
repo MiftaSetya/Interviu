@@ -3,13 +3,15 @@ import { Mic, MicOff, PhoneOff, Settings2 } from 'lucide-react';
 import { useGeminiLive } from '../hooks/useGeminiLive';
 import { InterviewConfig } from '../types';
 import AudioVisualizer from './AudioVisualizer';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface SessionViewProps {
   config: InterviewConfig;
   onEnd: () => void;
+  onResult: (summary: string) => void;
 }
 
-const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
+const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) => {
   const {
     connect,
     disconnect,
@@ -17,6 +19,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
     isMicOn,
     toggleMic,
     volumeLevel,
+    transcript
   } = useGeminiLive({
     config,
     onDisconnect: () => {
@@ -34,6 +37,42 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
     return () => disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once
+
+  // PATCH: Generate interview evaluation after session
+  const generateResult = async () => {
+    try {
+      const genAI = new GoogleGenerativeAI(process.env.API_KEY!);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+      const prompt = `
+      Berikut adalah transcript wawancara kandidat:
+
+      ${transcript.join("\n")}
+
+      Buatkan penilaian lengkap dengan format:
+
+      ## Ringkasan
+      (isi ringkas)
+
+      ## Kelebihan
+      - poin
+
+      ## Kekurangan
+      - poin
+
+      ## Rekomendasi Perbaikan
+      - poin
+
+      Gunakan bahasa Indonesia profesional dan jelas.
+          `;
+
+        const result = await model.generateContent(prompt);
+        const text = await result.response.text();
+        onResult(text);
+      } catch (err) {
+        onResult("Gagal menghasilkan hasil wawancara.");
+      }
+    };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-4xl mx-auto p-6">
@@ -79,8 +118,9 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
         </button>
 
         <button
-          onClick={() => {
+          onClick={async () => {
             disconnect();
+            await generateResult();
             onEnd();
           }}
           className="p-6 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700 transition-all transform hover:scale-110"

@@ -34,6 +34,9 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
+  // Transcript storage
+  const [transcript, setTranscript] = useState<string[]>([]);
+
   const cleanup = useCallback(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -193,6 +196,12 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             scriptProcessor.connect(inputAudioContextRef.current.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
+            // Capture text output from AI
+            const textOutput = message.serverContent?.modelTurn?.parts?.[0]?.text;
+            if (textOutput) {
+              setTranscript(prev => [...prev, `AI: ${textOutput}`]);
+            }
+
             // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio) {
@@ -322,6 +331,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     isConnected,
     isMicOn,
     toggleMic,
-    volumeLevel
+    volumeLevel,
+    transcript
   };
 };
