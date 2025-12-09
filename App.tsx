@@ -36,7 +36,7 @@ const App: React.FC = () => {
 
   // Config/Session View
   return (
-    <div className="min-h-screen bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
+    <div className="max-h-screen bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
 
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]"></div>

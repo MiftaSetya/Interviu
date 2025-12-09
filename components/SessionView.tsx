@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Mic, MicOff, PhoneOff, Settings2 } from 'lucide-react';
 import { useGeminiLive } from '../hooks/useGeminiLive';
 import { InterviewConfig } from '../types';
 import AudioVisualizer from './AudioVisualizer';
+import InterviewRoom from './InterviewRoom';
+import type { UserCamHandle } from './UserCam';
 
 interface SessionViewProps {
   config: InterviewConfig;
@@ -28,6 +30,34 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
     }
   });
 
+  const userCamRef = useRef<UserCamHandle | null>(null);
+
+  // Play opening sound once when connection is established
+  const openingAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    if (!isConnected) return;
+    try {
+      if (!openingAudioRef.current) {
+        openingAudioRef.current = new Audio('/assets/opening.mp3');
+        openingAudioRef.current.preload = 'auto';
+      }
+      const playPromise = openingAudioRef.current.play();
+      if (playPromise instanceof Promise) {
+        playPromise.catch(() => {
+          // autoplay might be blocked by browser; ignore
+        });
+      }
+    } catch (e) {
+      // ignore errors
+    }
+    return () => {
+      // optional: pause/rewind when disconnected
+      if (!isConnected && openingAudioRef.current) {
+        try { openingAudioRef.current.pause(); openingAudioRef.current.currentTime = 0; } catch (e) {}
+      }
+    };
+  }, [isConnected]);
+
   // Auto-connect on mount
   useEffect(() => {
     connect();
@@ -36,7 +66,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
   }, []); // Run once
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-4xl mx-auto p-6">
+    <div className="flex flex-col items-center justify-start md:justify-center min-h-[60vh] w-full max-w-4xl mx-auto p-6">
 
       {/* Header Info */}
       <div className="text-center mb-8">
@@ -49,14 +79,10 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
       </div>
 
       {/* Visualizer Area */}
-      <div className="relative w-64 h-64 md:w-80 md:h-80 mb-12 flex items-center justify-center">
+      <div className="relative w-full h-full md:w-full md:h-80 mb-12 flex items-center justify-center">
         {isConnected ? (
-          <AudioVisualizer
-            volume={volumeLevel}
-            isActive={isConnected}
-            color={isMicOn ? '#06B6D4' : '#EF4444'}
-          />
-        ) : (
+            <InterviewRoom volume={volumeLevel} isActive={isMicOn} userCamRef={userCamRef} />
+          ) : (
           <div className="animate-pulse flex flex-col items-center justify-center text-slate-500">
             <div className="w-16 h-16 border-4 border-slate-600 border-t-primary rounded-full animate-spin mb-4"></div>
             <p>Membangun koneksi aman...</p>
@@ -80,6 +106,11 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
 
         <button
           onClick={() => {
+            // stop the user's camera via ref (preferred)
+            try {
+              userCamRef.current?.stopCamera();
+            } catch (e) {}
+
             disconnect();
             onEnd();
           }}
@@ -90,9 +121,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
         </button>
       </div>
 
-      <div className="mt-8 text-slate-500 text-sm">
-        {isMicOn ? "Mendengarkan... Silakan berbicara dengan natural." : "Mikrofon dimatikan."}
-      </div>
+
     </div>
   );
 };
