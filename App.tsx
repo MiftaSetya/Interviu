@@ -3,10 +3,13 @@ import { InterviewConfig } from './types';
 import LandingPage from './components/LandingPage';
 import ConfigForm from './components/ConfigForm';
 import SessionView from './components/SessionView';
+import ResultView from './components/ResultView';
 
 const App: React.FC = () => {
   const [showLanding, setShowLanding] = useState(true);
   const [config, setConfig] = useState<InterviewConfig | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [feedback, setFeedback] = useState("");
 
   const handleGetStarted = () => {
     setShowLanding(false);
@@ -14,10 +17,17 @@ const App: React.FC = () => {
 
   const handleStart = (newConfig: InterviewConfig) => {
     setConfig(newConfig);
+    setShowResult(false);
   };
 
-  const handleEnd = () => {
+  const handleEnd = (feedbackText: string) => {
+    setFeedback(feedbackText);
+    setShowResult(true);
     setConfig(null);
+  };
+
+  const handleRestart = () => {
+    setShowResult(false);
   };
 
   // Landing Page View
@@ -30,6 +40,14 @@ const App: React.FC = () => {
         </div>
 
         <LandingPage onGetStarted={handleGetStarted} />
+      </div>
+    );
+  }
+
+  if (showResult) {
+    return (
+      <div className="min-h-screen bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
+        <ResultView feedback={feedback} onRestart={handleRestart} />
       </div>
     );
   }

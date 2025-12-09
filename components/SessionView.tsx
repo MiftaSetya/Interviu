@@ -17,14 +17,14 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
     isMicOn,
     toggleMic,
     volumeLevel,
+    requestFeedback,
+    feedbackText
   } = useGeminiLive({
     config,
-    onDisconnect: () => {
-      // Optional: Auto-close on remote disconnect
-    },
+    onDisconnect: () => {},
     onError: (e) => {
       alert(e.message);
-      onEnd();
+      onEnd(feedbackText);
     }
   });
 
@@ -79,8 +79,9 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd }) => {
         </button>
 
         <button
-          onClick={() => {
+          onClick={async () => {
             disconnect();
+            await requestFeedback();
             onEnd();
           }}
           className="p-6 rounded-full bg-red-600 text-white shadow-lg hover:bg-red-700 transition-all transform hover:scale-110"
