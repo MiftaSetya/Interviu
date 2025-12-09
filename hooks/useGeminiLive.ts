@@ -27,6 +27,8 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   const nextStartTimeRef = useRef<number>(0);
   const scheduledSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
+  const audioQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const processingIdRef = useRef<number>(0);
 
   // Analyser for visualizer
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -36,6 +38,8 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+
+    processingIdRef.current += 1;
 
     // Stop all scheduled audio
     scheduledSourcesRef.current.forEach(source => {
@@ -61,6 +65,19 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
+    }
+
+    // Disconnect and clean up ScriptProcessor (CRITICAL for performance/stutter)
+    if (processorRef.current) {
+      processorRef.current.onaudioprocess = null;
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+
+    // Disconnect and clean up Source
+    if (sourceRef.current) {
+      sourceRef.current.disconnect();
+      sourceRef.current = null;
     }
 
     // Close session
@@ -95,24 +112,49 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
 
-      // Get Mic Stream
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Get Mic Stream with advanced processing for better voice isolation
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
       streamRef.current = stream;
 
+      // Ensure audio context is running
+      await audioContextRef.current.resume();
+
       // Construct System Instruction based on Config
-      let systemInstruction = `Kamu adalah seorang pewawancara profesional yang sedang melakukan wawancara ${config.type}. 
-      Kandidat sedang melamar untuk: ${config.roleOrScholarshipName} di ${config.companyOrOrg}. 
-      ${config.experienceLevel ? `Tingkat pengalaman: ${config.experienceLevel}.` : ''}
-      ${config.focusArea ? `Fokus pada: ${config.focusArea}.` : ''}
-      
-      Tujuanmu adalah menciptakan suasana wawancara yang realistis, profesional, namun tetap mendukung kandidat. 
-      1. Mulai dengan menyambut kandidat dan minta mereka untuk memperkenalkan diri dalam bahasa Indonesia.
-      2. Ajukan SATU pertanyaan dalam satu waktu. Tunggu jawaban kandidat.
-      3. Dengarkan dengan aktif. Jika jawabannya singkat, ajukan pertanyaan lanjutan. Jika jawabannya bagus, berikan apresiasi singkat lalu lanjut ke pertanyaan berikutnya.
-      4. Buat responmu ringkas dan natural seperti percakapan sehari-hari dalam bahasa Indonesia. Hindari monolog panjang.
-      5. Jika kandidat meminta feedback, berikan feedback yang konstruktif dan singkat dalam bahasa Indonesia, lalu kembali ke alur wawancara.
-      6. Gunakan bahasa Indonesia yang baik dan benar, tapi tetap santai dan natural.
-      7. Jangan gunakan bahasa Inggris sama sekali, kecuali untuk istilah teknis yang memang tidak ada padanan bahasa Indonesianya.
+      let systemInstruction = `
+      Kamu adalah pewawancara profesional yang melakukan wawancara ${config.type}.
+      Kandidat melamar posisi: ${config.roleOrScholarshipName} di ${config.companyOrOrg}.
+      ${config.experienceLevel ? `Tingkat pengalaman kandidat: ${config.experienceLevel}.` : ''}
+      ${config.focusArea ? `Fokus wawancara pada: ${config.focusArea}.` : ''}
+
+      === PERILAKU UTAMA ===
+      1. Mulai dengan salam singkat dan minta kandidat memperkenalkan diri.
+      2. Ajukan satu pertanyaan pada satu waktu.
+      3. Respon secara natural, ringkas, dan berorientasi percakapan — bukan paragraf panjang.
+      4. Jika jawaban terlalu singkat: beri pertanyaan lanjutan.
+      5. Jika jawabannya baik: beri apresiasi singkat lalu lanjutkan.
+      6. Jawab dalam Bahasa Indonesia yang jelas, santai, dan profesional. Hindari bahasa Inggris kecuali istilah teknis.
+
+      === HINDARI INI ===
+      - Jangan mengulang kata atau frasa dari kalimat sebelumnya.
+      - Jangan mengulang ucapan seperti “baik baik”, “bagus bagus”, atau “terima kasih terima kasih”.
+      - Jangan membuat paragraf panjang seperti artikel.
+      - Jangan menjawab sendiri pertanyaan yang kamu ajukan ke kandidat.
+      - Jangan memberikan lebih dari satu pertanyaan sekaligus.
+
+      === GAYA KOMUNIKASI ===
+      - Pendek, to the point, dan seperti pewawancara manusia.
+      - Ramah tapi tetap profesional.
+      - Variasikan cara bertanya agar tidak terdengar robotik.
+
+      ===
+      Jika kandidat meminta feedback, berikan feedback singkat dan spesifik, lalu kembali ke alur wawancara.
       `;
 
       // Connect to Gemini Live
@@ -134,12 +176,16 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             processorRef.current = scriptProcessor;
 
             scriptProcessor.onaudioprocess = (e) => {
-              if (!isMicOn) return; // Mute logic
+              if (!isMicOn || !sessionPromiseRef.current) return; // Mute logic or session closed
 
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmBlob = createPcmBlob(inputData);
-              sessionPromise.then(session => {
-                session.sendRealtimeInput({ media: pcmBlob });
+              sessionPromiseRef.current?.then(session => {
+                try {
+                  session.sendRealtimeInput({ media: pcmBlob });
+                } catch (e) {
+                  // Session might be closed
+                }
               });
             };
 
@@ -149,42 +195,67 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
           onmessage: async (message: LiveServerMessage) => {
             // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (base64Audio && audioContextRef.current) {
-              // Update cursor
-              nextStartTimeRef.current = Math.max(
-                nextStartTimeRef.current,
-                audioContextRef.current.currentTime
-              );
+            if (base64Audio) {
+              const currentId = processingIdRef.current;
+              audioQueueRef.current = audioQueueRef.current.then(async () => {
+                if (currentId !== processingIdRef.current || !audioContextRef.current) return;
 
-              const audioBuffer = await decodeAudioData(
-                base64ToUint8Array(base64Audio),
-                audioContextRef.current,
-                24000,
-                1
-              );
+                try {
+                  const audioBuffer = await decodeAudioData(
+                    base64ToUint8Array(base64Audio),
+                    audioContextRef.current,
+                    24000,
+                    1
+                  );
 
-              const source = audioContextRef.current.createBufferSource();
-              source.buffer = audioBuffer;
+                  // Double check validity after async decode
+                  if (currentId !== processingIdRef.current || !audioContextRef.current) return;
 
-              // Connect to Analyser (for visualization) and Destination (for hearing)
-              if (analyserRef.current) {
-                source.connect(analyserRef.current);
-                analyserRef.current.connect(audioContextRef.current.destination);
-              } else {
-                source.connect(audioContextRef.current.destination);
-              }
+                  const source = audioContextRef.current.createBufferSource();
+                  source.buffer = audioBuffer;
 
-              source.onended = () => {
-                scheduledSourcesRef.current.delete(source);
-              };
+                  // Connect to Analyser (for visualization) and Destination (for hearing)
+                  if (analyserRef.current) {
+                    source.connect(analyserRef.current);
+                    analyserRef.current.connect(audioContextRef.current.destination);
+                  } else {
+                    source.connect(audioContextRef.current.destination);
+                  }
 
-              source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += audioBuffer.duration;
-              scheduledSourcesRef.current.add(source);
+                  source.onended = () => {
+                    scheduledSourcesRef.current.delete(source);
+                  };
+
+                  const currentTime = audioContextRef.current.currentTime;
+
+                  // Ultra-responsive buffering for instant AI response
+                  if (nextStartTimeRef.current < currentTime) {
+                    const gap = currentTime - nextStartTimeRef.current;
+
+                    if (gap > 0.5) {
+                      // Large gap (new turn/AI starts speaking) - MINIMAL buffer for instant response
+                      nextStartTimeRef.current = currentTime + 0.01;
+                    } else if (gap > 0.1) {
+                      // Medium gap (network hiccup) - moderate buffer to prevent re-stutter
+                      nextStartTimeRef.current = currentTime + 0.15;
+                    } else {
+                      // Small gap (minor jitter) - tiny buffer to stay responsive
+                      nextStartTimeRef.current = currentTime + 0.02;
+                    }
+                  }
+
+                  source.start(nextStartTimeRef.current);
+                  nextStartTimeRef.current += audioBuffer.duration;
+                  scheduledSourcesRef.current.add(source);
+                } catch (e) {
+                  console.error("Error processing audio chunk", e);
+                }
+              });
             }
 
             // Handle Interruption
             if (message.serverContent?.interrupted) {
+              processingIdRef.current += 1;
               scheduledSourcesRef.current.forEach(src => {
                 try { src.stop(); } catch (e) { }
               });
@@ -192,12 +263,17 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
               nextStartTimeRef.current = 0;
             }
           },
-          onclose: () => {
+          onclose: (event) => {
+            console.log("Gemini Session Closed:", event);
+            // Don't treat normal close as error
             cleanup();
           },
           onerror: (err) => {
             console.error("Gemini Live Error:", err);
-            onError?.(new Error("Connection error occurred."));
+            // Only trigger error if we were supposed to be connected
+            if (isConnected) {
+              onError?.(new Error("Connection disrupted."));
+            }
             cleanup();
           }
         },
