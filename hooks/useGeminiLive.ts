@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { InterviewConfig } from '../types';
 import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/audioUtils';
@@ -33,6 +33,48 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   // Analyser for visualizer
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  // Transcript storage
+  const [transcript, setTranscript] = useState<string[]>([]);
+
+  // Speech Recognition for User Transcript
+  useEffect(() => {
+    if (!isConnected || !isMicOn) return;
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = 'id-ID';
+
+    recognition.onresult = (event: any) => {
+      const results = event.results;
+      const lastResult = results[results.length - 1];
+      if (lastResult.isFinal) {
+        const text = lastResult[0].transcript;
+        if (text.trim()) {
+          setTranscript(prev => [...prev, `Kandidat: ${text}`]);
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      // Silently handle errors
+      console.warn('Speech recognition error:', event.error);
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('Failed to start speech recognition:', e);
+    }
+
+    return () => {
+      recognition.stop();
+    };
+  }, [isConnected, isMicOn]);
 
   const cleanup = useCallback(() => {
     if (animationFrameRef.current) {
@@ -193,6 +235,12 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             scriptProcessor.connect(inputAudioContextRef.current.destination);
           },
           onmessage: async (message: LiveServerMessage) => {
+            // Capture text output from AI
+            const textOutput = message.serverContent?.modelTurn?.parts?.[0]?.text;
+            if (textOutput) {
+              setTranscript(prev => [...prev, `AI: ${textOutput}`]);
+            }
+
             // Handle Audio Output
             const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio) {
@@ -322,6 +370,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     isConnected,
     isMicOn,
     toggleMic,
-    volumeLevel
+    volumeLevel,
+    transcript
   };
 };
