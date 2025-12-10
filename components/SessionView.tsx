@@ -13,6 +13,10 @@ interface SessionViewProps {
   onResult: (summary: string) => void;
 }
 
+// console.log('API Key:', process.env.API_KEY);
+
+
+
 const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) => {
   const {
     connect,
@@ -79,7 +83,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
 
       const genAI = new GoogleGenerativeAI(apiKey);
       // Reverting to gemini-2.0-flash-exp as requested
-      const model = genAI.getGenerativeModel({ model: "	gemini-2.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "	gemini-2.5-flash-lite" });
 
       const conversationText = transcript.length > 0
         ? transcript.join("\n")
@@ -167,7 +171,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
         ) : (
           <div className="animate-pulse flex flex-col items-center justify-center text-slate-500">
             <div className="w-16 h-16 border-4 border-slate-600 border-t-primary rounded-full animate-spin mb-4"></div>
-            <p>Membangun koneksi aman...</p>
+            <p>Menanalisis wawancara</p>
           </div>
         )}
       </div>

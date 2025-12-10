@@ -1,8 +1,13 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { CheckCircle, AlertTriangle, Lightbulb, FileText, ArrowLeft, Download, Trophy, Star, TrendingUp } from "lucide-react";
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { InterviewConfig } from '../types';
+
 interface ResultViewProps {
   feedback: string;
+  config?: InterviewConfig | null;
   onRestart: () => void;
 }
 
@@ -30,7 +35,7 @@ const parseFeedback = (text: string) => {
       sections.score = isNaN(extractedScore) ? 0 : Math.min(100, Math.max(0, extractedScore));
     }
 
-    if (summaryMatch) sections.summary = summaryMatch[1].trim();
+    if (summaryMatch) sections.summary = summaryMatch[1].trim().replace(/^Eksekutif\s*/i, '');
 
     const extractPoints = (raw: string) => {
       // Remove all asterisks and bold formatting
@@ -83,7 +88,7 @@ const AnimatedScore = ({ value }: { value: number }) => {
   return <>{displayValue}</>;
 };
 
-export default function ResultView({ feedback, onRestart }: ResultViewProps) {
+export default function ResultView({ feedback, config, onRestart }: ResultViewProps) {
   const data = useMemo(() => parseFeedback(feedback), [feedback]);
   const isRaw = !data.summary && !data.strengths.length;
 
@@ -309,11 +314,145 @@ export default function ResultView({ feedback, onRestart }: ResultViewProps) {
             Wawancara Lagi
           </button>
 
-          <button className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:scale-110 transition-all shadow-lg">
+          {/* <button className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:scale-110 transition-all shadow-lg">
             <Trophy size={20} />
-          </button>
+          </button> */}
 
-          <button className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:scale-110 transition-all shadow-lg">
+          <button
+            onClick={() => {
+              const doc = new jsPDF();
+              const pageWidth = doc.internal.pageSize.getWidth();
+              const margin = 20;
+              let y = 20;
+
+              // Helper for text wrapping
+              const addText = (text: string, fontSize: number, bold = false, color = '#000000') => {
+                doc.setFontSize(fontSize);
+                doc.setTextColor(color);
+                doc.setFont("helvetica", bold ? "bold" : "normal");
+                const splitText = doc.splitTextToSize(text, pageWidth - margin * 2);
+                doc.text(splitText, margin, y);
+                y += splitText.length * fontSize * 0.5 + 5; // Simple line height approx
+              };
+
+              // HEADER
+              addText("Laporan Wawancara - AI Evaluation", 22, true, '#1e293b');
+              y += 5;
+
+              // META INFO
+              doc.setFontSize(10);
+              doc.setTextColor('#64748b');
+              const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+              if (config) {
+                doc.text(`Posisi: ${config.roleOrScholarshipName}`, margin, y);
+                y += 6;
+                doc.text(`Perusahaan: ${config.companyOrOrg}`, margin, y);
+                y += 6;
+              }
+              doc.text(`Tanggal: ${dateStr}`, margin, y);
+              y += 15;
+
+              // SCORE
+              doc.setFillColor('#f1f5f9');
+              doc.roundedRect(margin, y, pageWidth - margin * 2, 40, 3, 3, 'F');
+
+              doc.setFontSize(40);
+              doc.setTextColor('#0ea5e9'); // Primary blue
+              doc.setFont("helvetica", "bold");
+              doc.text(`${data.score}`, margin + 10, y + 28);
+
+              doc.setFontSize(12);
+              doc.setTextColor('#64748b');
+              doc.setFont("helvetica", "normal");
+              doc.text("/ 100", margin + 45, y + 28);
+
+              doc.setFontSize(14);
+              doc.setTextColor('#334155');
+              doc.text("Skor Keseluruhan", margin + 70, y + 20);
+
+              // Grade Label
+              const grade = getGrade(data.score);
+              doc.setFontSize(12);
+              doc.setTextColor(grade.color.replace('text-', '').replace('-400', '')); // Rough hack, better to hardcode colors or map them
+              // Let's just use standard colors based on score
+              const gradeColor = data.score >= 70 ? '#10b981' : data.score >= 50 ? '#eab308' : '#ef4444';
+              doc.setTextColor(gradeColor);
+              doc.text(grade.label, margin + 70, y + 28);
+
+              y += 50;
+
+              // SUMMARY
+              addText("Ringkasan", 16, true, '#334155');
+              doc.setFontSize(11);
+              doc.setTextColor('#475569');
+              doc.setFont("helvetica", "normal");
+              const summaryLines = doc.splitTextToSize(data.summary || "Tidak ada ringkasan.", pageWidth - margin * 2);
+              doc.text(summaryLines, margin, y);
+              y += summaryLines.length * 6 + 10;
+
+              // STRENGTHS & WEAKNESSES TABLE
+              // We'll use autoTable for lists to keep them neat
+
+              if (data.strengths.length > 0) {
+                addText("Kelebihan", 14, true, '#10b981');
+                autoTable(doc, {
+                  startY: y,
+                  head: [],
+                  body: data.strengths.filter(s => s.trim().toLowerCase() !== 'kandidat').map(s => [s]),
+                  theme: 'plain',
+                  styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+                  columnStyles: { 0: { cellWidth: 'auto' } },
+                  margin: { left: margin },
+                  didDrawPage: (d) => { y = d.cursor.y + 10; }
+                });
+                // Update y after table
+                // autoTable modifies cursor, we need to read it from the last state but here we just approximate or let autoTable handle paging
+                // Since we are in an onclick, we can't easily get the final Y from the library in this simple way without assigning result
+                // Let's re-assign y properly:
+                // @ts-ignore
+                y = doc.lastAutoTable.finalY + 10;
+              }
+
+              if (data.weaknesses.length > 0) {
+                addText("Kekurangan & Area Fokus", 14, true, '#ef4444');
+                autoTable(doc, {
+                  startY: y,
+                  head: [],
+                  body: data.weaknesses.map(w => [w]),
+                  theme: 'plain',
+                  styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+                  margin: { left: margin },
+                });
+                // @ts-ignore
+                y = doc.lastAutoTable.finalY + 15;
+              }
+
+              // RECOMMENDATIONS
+              if (data.recommendations.length > 0) {
+                // Check paging
+                if (y > 250) { doc.addPage(); y = 20; }
+
+                addText("Rekomendasi Strategis", 14, true, '#8b5cf6');
+
+                const recBody = data.recommendations.map((rec, i) => [`${i + 1}.`, rec]);
+
+                autoTable(doc, {
+                  startY: y,
+                  head: [],
+                  body: recBody,
+                  theme: 'striped',
+                  styles: { fontSize: 10, cellPadding: 4 },
+                  columnStyles: { 0: { cellWidth: 10, fontStyle: 'bold' } },
+                  margin: { left: margin },
+                });
+              }
+
+              doc.save(`Laporan_Wawancara_${config?.roleOrScholarshipName || 'Result'}.pdf`);
+            }}
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:scale-110 transition-all shadow-lg"
+            title="Download PDF"
+          >
             <Download size={20} />
           </button>
         </div>

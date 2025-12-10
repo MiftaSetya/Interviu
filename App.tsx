@@ -20,7 +20,7 @@ const App: React.FC = () => {
   };
 
   const handleEnd = () => {
-    setConfig(null);
+    // setConfig(null); // Keep config for ResultView
   };
 
   // Landing Page View
@@ -41,10 +41,11 @@ const App: React.FC = () => {
     return (
       <ResultView
         feedback={result}
+        config={config}
         onRestart={() => {
           setResult("");
           setShowResult(false);
-          setConfig(null);
+          setConfig(null); // Clear config explicitly on restart
         }}
       />
     );
@@ -52,7 +53,7 @@ const App: React.FC = () => {
 
   // Config/Session View
   return (
-    <div className="max-h-screen bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
+    <div className=" bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
 
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]"></div>
@@ -77,7 +78,7 @@ const App: React.FC = () => {
                 setResult(text);
                 setShowResult(true);
               }}
-            /> 
+            />
           )}
         </main>
       </div>
