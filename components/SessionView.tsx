@@ -93,6 +93,9 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
       --------------------------------------------------
       Berdasarkan percakapan di atas, berikan evaluasi lengkap untuk kandidat dengan struktur berikut:
 
+      ## Skor
+      (Berikan skor angka bulat 0-100 berdasarkan performa keseluruhan)
+
       ## Ringkasan Eksekutif
       (Jelaskan secara singkat apa yang dibahas dan kesan umum terhadap kandidat)
 
