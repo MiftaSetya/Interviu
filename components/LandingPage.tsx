@@ -19,12 +19,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 </div>
 
                 <div className="max-w-5xl mx-auto text-center relative z-10">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 backdrop-blur-sm border border-primary/20 mb-8 animate-pulse">
+                    {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 backdrop-blur-sm border border-primary/20 mb-8 animate-pulse">
                         <Sparkles className="w-4 h-4 text-primary" />
                         <span className="text-sm text-slate-300">Latihan Wawancara Berbasis AI</span>
-                    </div>
+                    </div> */}
 
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 mt-10">
                         <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-pulse-slow">
                             Siapkan Karirmu
                         </span>

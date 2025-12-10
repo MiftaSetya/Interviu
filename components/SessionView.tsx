@@ -72,50 +72,74 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
   // PATCH: Generate interview evaluation after session
   const generateResult = async () => {
     try {
-      const genAI = new GoogleGenerativeAI(process.env.API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("API Key tidak ditemukan. Pastikan konfigurasi .env benar.");
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      // Reverting to gemini-2.0-flash-exp as requested
+      const model = genAI.getGenerativeModel({ model: "	gemini-2.5-flash" });
+
+      const conversationText = transcript.length > 0
+        ? transcript.join("\n")
+        : "(Tidak ada percakapan terekam. Mungkin sesi terlalu singkat atau audio tidak terdeteksi.)";
 
       const prompt = `
-      Berikut adalah transcript wawancara kandidat (Mungkin terpotong atau belum selesai):
+      Berikut adalah transkrip wawancara antara Pewawancara (AI) dan Kandidat (User):
 
-      ${transcript.length > 0 ? transcript.join("\n") : "(Tidak ada percakapan terekam)"}
+      ${conversationText}
 
-      Buatkan penilaian lengkap dengan format:
+      --------------------------------------------------
+      Berdasarkan percakapan di atas, berikan evaluasi lengkap untuk kandidat dengan struktur berikut:
 
-      ## Ringkasan
-      (isi ringkas tentang apa yang dibahas sejauh ini)
+      ## Ringkasan Eksekutif
+      (Jelaskan secara singkat apa yang dibahas dan kesan umum terhadap kandidat)
 
-      ## Kelebihan
-      - poin (berdasarkan data yang ada)
+      ## Kelebihan Kandidat
+      - Komunikasi: (analisis gaya bicara)
+      - Kompetensi: (analisis keahlian teknis/soft skill yang muncul)
+      - Poin positif lainnya
 
-      ## Kekurangan
-      - poin (berdasarkan data yang ada)
+      ## Kekurangan / Area Pengembangan
+      - Poin yang perlu diperbaiki
+      - Kesalahan yang mungkin dilakukan saat menjawab
 
-      ## Rekomendasi Perbaikan
-      - poin
+      ## Rekomendasi
+      (Saran konkrit untuk kandidat agar lebih sukses di wawancara berikutnya)
 
-      Jika data sangat sedikit, berikan penilaian berdasarkan impresi awal atau saran umum.
-      Gunakan bahasa Indonesia profesional dan jelas.
-          `;
+      Gunakan Bahasa Indonesia yang profesional, objektif, dan konstruktif. Hindari kalimat yang berulang-ulang.
+      Jika data percakapan sangat sedikit, berikan feedback berdasarkan seberapa responsif kandidat diawal sesi.
+      `;
 
       const result = await model.generateContent(prompt);
-      const text = await result.response.text();
+      const text = result.response.text();
       onResult(text);
     } catch (err) {
       console.error("Summary Generation Error:", err);
 
-      // Fallback: If AI fails (quota/network), show the transcript so user still gets value
+      // Fallback message with debug info
+      let errorMessage = "Maaf, gagal membuat ringkasan otomatis.";
+      let errorDetail = "";
+
+      if (err instanceof Error) {
+        errorDetail = err.message;
+        if (err.message.includes("API Key")) errorMessage += " (API Key bermasalah)";
+        else if (err.message.includes("404")) errorMessage += " (Model AI tidak tersedia atau salah nama model)";
+        else if (err.message.includes("429")) errorMessage += " (Quota habis/Rate limit)";
+      } else {
+        errorDetail = String(err);
+      }
+
       const fallbackText = `
-## Hasil Wawancara (Mode Offline/Fallback)
+### ${errorMessage}
+> *Debug Error: ${errorDetail}*
 
-Maaf, AI sedang sibuk atau kuota habis sehingga tidak bisa membuat ringkasan otomatis saat ini. 
-Namun, berikut adalah rekam jejak percakapan Anda:
+### Transkrip Sesi:
+${transcript.length > 0 ? transcript.join("\n") : "(Tidak ada data percakapan)"}
 
-### Transkrip Pecakapan:
-${transcript.length > 0 ? transcript.join("\n") : "(Tidak ada data percakapan yang terekam)"}
-
-_Anda dapat mencoba lagi nanti untuk mendapatkan analisis AI yang lebih mendalam._
-        `;
+_Silakan cek koneksi internet atau konfigurasi API Key Anda._
+`;
       onResult(fallbackText);
     }
   };
