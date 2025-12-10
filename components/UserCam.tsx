@@ -59,12 +59,24 @@ const UserCam = forwardRef<UserCamHandle>((_, ref) => {
   }));
 
   return (
-    <video
-      ref={videoRef}
-      className="w-full h-full object-cover rounded-xl"
-      autoPlay
-      muted
-    />
+    <div className="w-full h-full max-h-[510px] relative rounded-xl overflow-hidden">
+      <video
+        ref={videoRef}
+        className="w-full h-full object-cover"
+        autoPlay
+        muted
+      />
+
+      <div className="absolute top-5 left-5 text-white font-semibold rounded-md backdrop-blur-md">
+        Kamera anda
+      </div>
+
+      <div className="pointer-events-none absolute top-0 left-0 w-full h-10 
+      bg-gradient-to-b from-black/40 to-transparent" />
+
+      <div className="pointer-events-none absolute bottom-0 left-0 w-full h-10
+      bg-gradient-to-t from-black/40 to-transparent" />
+    </div>
   );
 });
 
