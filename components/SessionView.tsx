@@ -100,7 +100,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
       (Jelaskan secara singkat apa yang dibahas dan kesan umum terhadap kandidat)
 
       ## Kelebihan Kandidat
-      - Komunikasi: (analisis gaya bicara)
+      - Komunikasi Kandidat: (analisis gaya bicara)
       - Kompetensi: (analisis keahlian teknis/soft skill yang muncul)
       - Poin positif lainnya
 

@@ -33,10 +33,16 @@ const parseFeedback = (text: string) => {
     if (summaryMatch) sections.summary = summaryMatch[1].trim();
 
     const extractPoints = (raw: string) => {
-      return raw.split('\n')
+      // Remove all asterisks and bold formatting
+      const cleanRaw = raw.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+
+      return cleanRaw.split('\n')
         .map(line => line.trim())
-        .filter(line => line.startsWith('-') || line.startsWith('•') || line.match(/^\d+\./))
-        .map(line => line.replace(/^[-•\d+\.]\s*/, '').trim());
+        // Filter out empty lines
+        .filter(line => line.length > 0)
+        // Remove leading bullets, numbers, dots, hyphens, asterisks, slashes etc
+        .map(line => line.replace(/^[\s\*\-\•\d\.:\/]+/, '').trim())
+        .filter(line => line.length > 0);
     };
 
     if (strengthsMatch) sections.strengths = extractPoints(strengthsMatch[1]);
@@ -162,11 +168,13 @@ export default function ResultView({ feedback, onRestart }: ResultViewProps) {
             </div>
 
             {/* Summary Minimal Card */}
-            <div className="bg-slate-900/50 border border-slate-700/50 p-6 rounded-3xl backdrop-blur-md">
-              <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <div className="relative bg-gradient-to-br from-blue-900/20 to-slate-900/60 border border-blue-500/20 p-6 rounded-3xl backdrop-blur-md overflow-hidden group hover:border-blue-500/40 transition-all">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[50px] group-hover:bg-blue-500/20 transition-all"></div>
+
+              <h3 className="relative z-10 text-lg font-bold text-white mb-4 flex items-center gap-2">
                 <FileText size={20} className="text-blue-400" /> Ringkasan
               </h3>
-              <p className="text-slate-400 text-sm leading-relaxed">
+              <p className="relative z-10 text-slate-300 text-sm leading-relaxed whitespace-pre-line">
                 {data.summary || "Tidak ada ringkasan tersedia."}
               </p>
             </div>
@@ -188,14 +196,25 @@ export default function ResultView({ feedback, onRestart }: ResultViewProps) {
                   <h3 className="text-xl font-bold text-white">Kelebihan</h3>
                 </div>
                 <div className="space-y-4">
-                  {data.strengths.length > 0 ? data.strengths.map((point, idx) => (
-                    <div key={idx} className="flex gap-3 items-start">
-                      <div className="mt-1 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <CheckCircle size={12} className="text-emerald-400" />
+                  {data.strengths.length > 0 ? data.strengths.map((point, idx) => {
+                    // Filter out stray "Kandidat" label
+                    if (point.trim().toLowerCase() === 'kandidat') return null;
+
+                    const isHeader = ["komunikasi", "kompetensi"].some(key => point.toLowerCase().includes(key) && point.length < 60);
+
+                    if (isHeader) {
+                      return <h4 key={idx} className="text-emerald-400 font-bold mt-4 first:mt-0 mb-1">{point.replace(/[:]+$/, '').replace(/^Komunikasi$/i, 'Komunikasi Kandidat')}</h4>;
+                    }
+
+                    return (
+                      <div key={idx} className="flex gap-3 items-start">
+                        <div className="mt-1 w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                          <CheckCircle size={12} className="text-emerald-400" />
+                        </div>
+                        <p className="text-slate-300 text-sm">{point}</p>
                       </div>
-                      <p className="text-slate-300 text-sm">{point}</p>
-                    </div>
-                  )) : (<p className="text-slate-500 italic">Tidak ada data.</p>)}
+                    );
+                  }) : (<p className="text-slate-500 italic">Tidak ada data.</p>)}
                 </div>
               </div>
 
@@ -205,17 +224,27 @@ export default function ResultView({ feedback, onRestart }: ResultViewProps) {
                   <div className="p-3 bg-red-500/20 rounded-2xl text-red-400 group-hover:scale-110 transition-transform">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Area Fokus</h3>
+                  <h3 className="text-xl font-bold text-white">Kekurangan</h3>
                 </div>
                 <div className="space-y-4">
-                  {data.weaknesses.length > 0 ? data.weaknesses.map((point, idx) => (
-                    <div key={idx} className="flex gap-3 items-start">
-                      <div className="mt-1 w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                  {data.weaknesses.length > 0 ? data.weaknesses.map((point, idx) => {
+                    const isHeader = point.toLowerCase().includes("poin yang perlu diperbaiki") ||
+                      point.toLowerCase().includes("kesalahan yang mungkin dilakukan") ||
+                      point.toLowerCase().includes("area pengembangan");
+
+                    if (isHeader) {
+                      return <h4 key={idx} className="text-red-400 font-bold mt-4 first:mt-0 mb-1">{point.replace(/[:]+$/, '')}</h4>;
+                    }
+
+                    return (
+                      <div key={idx} className="flex gap-3 items-start">
+                        <div className="mt-1 w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                        </div>
+                        <p className="text-slate-300 text-sm">{point}</p>
                       </div>
-                      <p className="text-slate-300 text-sm">{point}</p>
-                    </div>
-                  )) : (<p className="text-slate-500 italic">Tidak ada data.</p>)}
+                    );
+                  }) : (<p className="text-slate-500 italic">Tidak ada data.</p>)}
                 </div>
               </div>
 
@@ -225,20 +254,43 @@ export default function ResultView({ feedback, onRestart }: ResultViewProps) {
             <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-8 rounded-3xl backdrop-blur-md relative overflow-visible mb-8">
               <div className="absolute top-0 right-0 p-32 bg-violet-500/10 blur-[80px] rounded-full pointer-events-none"></div>
 
-              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10 w-full">
                 <Lightbulb className="text-violet-400 w-6 h-6" />
                 Rekomendasi Strategis
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                {data.recommendations.map((rec, idx) => (
-                  <div key={idx} className="bg-slate-900/60 border border-white/5 p-5 rounded-2xl hover:bg-slate-800/80 transition-colors shadow-sm">
-                    <span className="text-violet-400 font-bold text-sm mb-2 block uppercase tracking-wider">Langkah 0{idx + 1}</span>
-                    <p className="text-slate-200 text-sm leading-relaxed">{rec}</p>
-                  </div>
-                ))}
-                {data.recommendations.length === 0 && <p className="text-slate-500">Tidak ada rekomendasi spesifik.</p>}
-              </div>
+              {/* Logic to handle Intro sentence vs Steps */}
+              {(() => {
+                const hasIntro = data.recommendations.length > 0 && (
+                  data.recommendations[0].trim().endsWith(':') ||
+                  data.recommendations[0].length < 100 && !data.recommendations[0].match(/^(Langkah|Step|Point)\s\d/) // Heuristic for intro
+                );
+
+                const introText = hasIntro ? data.recommendations[0] : null;
+                const steps = hasIntro ? data.recommendations.slice(1) : data.recommendations;
+
+                return (
+                  <>
+                    {introText && (
+                      <div className="relative z-10 mb-8 p-4 bg-violet-500/5 border border-violet-500/10 rounded-xl">
+                        <p className="text-slate-200 text-sm leading-relaxed">{introText}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                      {steps.map((rec, idx) => (
+                        <div key={idx} className="bg-slate-900/60 border border-white/5 p-5 rounded-2xl hover:bg-slate-800/80 transition-colors shadow-sm">
+                          <span className="text-violet-400 font-bold text-sm mb-2 block uppercase tracking-wider">
+                            Langkah 0{idx + 1}
+                          </span>
+                          <p className="text-slate-200 text-sm leading-relaxed">{rec}</p>
+                        </div>
+                      ))}
+                      {steps.length === 0 && !introText && <p className="text-slate-500">Tidak ada rekomendasi spesifik.</p>}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
           </div>
