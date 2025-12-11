@@ -183,7 +183,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
   }
 
   return (
-    <div className="flex flex-col items-center justify-start md:justify-center min-h-[60vh] max-w-5xl mx-auto p-6">
+    <div className="flex flex-col items-center justify-start md:justify-center min-h-[60vh] max-w-[5/6] mx-auto p-6">
 
       {/* Header Info */}
       <div className="text-center mb-8">
@@ -198,7 +198,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
       </div>
 
       {/* Visualizer Area */}
-      <div className="relative w-full h-full md:w-full md:h-80 mb-12 flex items-center justify-center">
+      <div className="relative w-full h-full md:w-full md:h-80 mb-8 lg:mb-44 md:mb-2 flex items-center justify-center">
         {isConnected ? (
           <InterviewRoom volume={volumeLevel} isActive={isMicOn} userCamRef={userCamRef} />
         ) : (

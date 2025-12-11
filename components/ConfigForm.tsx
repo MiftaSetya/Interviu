@@ -164,7 +164,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
       {/* Main content */}
     <div className='px-4 md:px-20 flex flex-col justify-center'>
       <button
-          onClick={() => window.history.back()}
+          onClick={() => window.location.reload()}
           className="mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-primary/50 text-slate-300 hover:text-white transition-all duration-300 hover:gap-3 w-fit"
           title="Kembali ke halaman sebelumnya"
         >

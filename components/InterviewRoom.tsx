@@ -22,7 +22,7 @@ const InterviewView: React.FC<InterviewRoomProps> = ({ volume, isActive, userCam
         {/*  AI Avatar */}
         <div className="relative bg-gradient-to-br from-primary/20 to-secondary/10
           border border-primary/30 rounded-2xl shadow-xl overflow-hidden
-          backdrop-blur-sm flex items-center justify-center">
+          backdrop-blur-sm flex items-center justify-center aspect-[4/3]">
           <Avatar volume={volume} isActive={isActive} />
           <div className="pointer-events-none absolute top-0 left-0 w-full h-10 
       bg-gradient-to-b from-black/40 to-transparent" />
@@ -37,7 +37,7 @@ const InterviewView: React.FC<InterviewRoomProps> = ({ volume, isActive, userCam
         {/* User Camera */}
         <div className="relative bg-gradient-to-br from-secondary/20 to-primary/10
           border border-secondary/30 rounded-2xl shadow-xl overflow-hidden
-          backdrop-blur-sm flex items-center justify-center">
+          backdrop-blur-sm flex items-center justify-center aspect-[4/3]">
           <UserCam ref={userCamRef as any} />
           <div className="absolute top-3 left-3 px-3 py-1 bg-black/40 rounded text-white text-xs">
             Kamu

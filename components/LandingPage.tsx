@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Mic, Brain, Zap, ArrowRight, Plus, Minus } from 'lucide-react';
+import { Mic, Brain, Zap, ArrowRight, Plus, Minus } from 'lucide-react';
 import mobileScore from '../public/assets/mobile_score.png';
-import mobileFeedback from '../public/assets/mobile_feedback.png';
 import mobileLanding from '../public/assets/mobile_landing.png';
 import mobileCall from '../public/assets/mobile_call.jpg';
 
@@ -47,7 +46,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
 
                     {/* Mobile Mockup Section */}
-                    <div className="relative w-full max-w-5xl mx-auto h-[400px] md:h-[600px] mb-32 perspective-1000">
+                    <div className="relative w-full max-w-5xl mx-auto h-[400px] md:h-[600px] mb-44 perspective-1000">
                         {/* Left Phone - Secondary */}
                         <div className="absolute top-10 left-0 md:left-20 w-[240px] md:w-[280px] z-10 transform -rotate-6 translate-y-12 opacity-80 scale-90 hidden md:block animate-float-delayed">
                             <PhoneMockup>
@@ -72,7 +71,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                         </div>
                     </div>
 
-                    <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
+                    <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-24">
                         <FeatureCard
                             icon={<Mic className="w-8 h-8" />}
                             title="Interaksi Suara"
@@ -94,7 +93,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
 
                     {/* FAQ Section */}
-                    <div className="w-full max-w-6xl mx-auto mt-32 mb-20 relative z-10">
+                    <div className="w-full max-w-6xl mx-auto mt-20 mb-20 relative z-10">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
                                 Pertanyaan Umum
