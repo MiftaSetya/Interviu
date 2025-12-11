@@ -20,7 +20,7 @@ const App: React.FC = () => {
   };
 
   const handleEnd = () => {
-    setConfig(null);
+    // setConfig(null); // Keep config for ResultView
   };
 
   // Landing Page View
@@ -41,10 +41,11 @@ const App: React.FC = () => {
     return (
       <ResultView
         feedback={result}
+        config={config}
         onRestart={() => {
           setResult("");
           setShowResult(false);
-          setConfig(null);
+          setConfig(null); // Clear config explicitly on restart
         }}
       />
     );
@@ -77,7 +78,7 @@ const App: React.FC = () => {
                 setResult(text);
                 setShowResult(true);
               }}
-            /> 
+            />
           )}
         </main>
       </div>

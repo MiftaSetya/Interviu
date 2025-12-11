@@ -13,6 +13,10 @@ interface SessionViewProps {
   onResult: (summary: string) => void;
 }
 
+// console.log('API Key:', process.env.API_KEY);
+
+
+
 const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
@@ -200,7 +204,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
         ) : (
           <div className="flex flex-col items-center justify-center text-slate-500 py-12">
             <div className="w-16 h-16 border-4 border-slate-600 border-t-primary rounded-full animate-spin mb-4"></div>
-            <p>Membangun koneksi aman...</p>
+            <p>Menanalisis wawancara</p>
           </div>
         )}
       </div>

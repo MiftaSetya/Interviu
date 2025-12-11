@@ -16,7 +16,7 @@ const UserCam = forwardRef<UserCamHandle>((_, ref) => {
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
+          videoRef.current.play().catch(() => { });
         }
       }
     ).catch(() => {
@@ -30,10 +30,10 @@ const UserCam = forwardRef<UserCamHandle>((_, ref) => {
         streamRef.current = null;
       }
       if (videoRef.current) {
-        try { videoRef.current.pause(); } catch (e) {}
-        try { videoRef.current.srcObject = null; } catch (e) {}
-        try { videoRef.current.removeAttribute('src'); } catch (e) {}
-        try { videoRef.current.load(); } catch (e) {}
+        try { videoRef.current.pause(); } catch (e) { }
+        try { videoRef.current.srcObject = null; } catch (e) { }
+        try { videoRef.current.removeAttribute('src'); } catch (e) { }
+        try { videoRef.current.load(); } catch (e) { }
       }
     };
   }, []);
@@ -47,10 +47,10 @@ const UserCam = forwardRef<UserCamHandle>((_, ref) => {
           streamRef.current = null;
         }
         if (videoRef.current) {
-          try { videoRef.current.pause(); } catch (e) {}
-          try { videoRef.current.srcObject = null; } catch (e) {}
-          try { videoRef.current.removeAttribute('src'); } catch (e) {}
-          try { videoRef.current.load(); } catch (e) {}
+          try { videoRef.current.pause(); } catch (e) { }
+          try { videoRef.current.srcObject = null; } catch (e) { }
+          try { videoRef.current.removeAttribute('src'); } catch (e) { }
+          try { videoRef.current.load(); } catch (e) { }
         }
       } catch (e) {
         // ignore
