@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, PhoneOff, Settings2 } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Settings2, AlertCircle } from 'lucide-react';
 import { useGeminiLive } from '../hooks/useGeminiLive';
 import { InterviewConfig } from '../types';
 import AudioVisualizer from './AudioVisualizer';
 import InterviewRoom from './InterviewRoom';
 import type { UserCamHandle } from './UserCam';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
 interface SessionViewProps {
   config: InterviewConfig;
@@ -14,6 +14,8 @@ interface SessionViewProps {
 }
 
 const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) => {
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+
   const {
     connect,
     disconnect,
@@ -28,8 +30,7 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
       // Optional: Auto-close on remote disconnect
     },
     onError: (e) => {
-      alert(e.message);
-      onEnd();
+      setConnectionError(e.message || "Terjadi kesalahan koneksi.");
     }
   });
 
@@ -77,9 +78,9 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
         throw new Error("API Key tidak ditemukan. Pastikan konfigurasi .env benar.");
       }
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      // Reverting to gemini-2.0-flash-exp as requested
-      const model = genAI.getGenerativeModel({ model: "	gemini-2.5-flash" });
+      console.log(transcript);
+
+      const ai = new GoogleGenAI({ apiKey });
 
       const conversationText = transcript.length > 0
         ? transcript.join("\n")
@@ -115,8 +116,11 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
       Jika data percakapan sangat sedikit, berikan feedback berdasarkan seberapa responsif kandidat diawal sesi.
       `;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash-lite",
+        contents: prompt,
+      });
+      const text = result.text;
       onResult(text);
     } catch (err) {
       console.error("Summary Generation Error:", err);
@@ -147,8 +151,35 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
     }
   };
 
+  if (connectionError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] w-full max-w-lg mx-auto p-6 text-center">
+        <div className="bg-red-500/10 border border-red-500/50 p-8 rounded-2xl flex flex-col items-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h3 className="text-xl font-bold text-white mb-2">Gagal Terhubung</h3>
+          <p className="text-slate-300 mb-6">{connectionError}</p>
+          <button
+            onClick={() => {
+              setConnectionError(null);
+              connect();
+            }}
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Coba Lagi
+          </button>
+          <button
+            onClick={onEnd}
+            className="mt-4 text-sm text-slate-400 hover:text-white underline"
+          >
+            Kembali ke Menu
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-start md:justify-center min-h-[60vh] w-full max-w-4xl mx-auto p-6">
+    <div className="flex flex-col items-center justify-start md:justify-center min-h-[60vh] max-w-5xl mx-auto p-6">
 
       {/* Header Info */}
       <div className="text-center mb-8">
@@ -156,7 +187,9 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
           Wawancara untuk {config.roleOrScholarshipName}
         </h2>
         <p className="text-slate-400">
-          di {config.companyOrOrg} • <span className="text-primary font-medium">{isConnected ? 'Terhubung' : 'Menghubungkan...'}</span>
+          di {config.companyOrOrg} • <span className={`font-medium ${isConnected ? 'text-primary' : 'text-yellow-500 animate-pulse'}`}>
+            {isConnected ? 'Terhubung' : 'Menghubungkan...'}
+          </span>
         </p>
       </div>
 
@@ -165,7 +198,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
         {isConnected ? (
           <InterviewRoom volume={volumeLevel} isActive={isMicOn} userCamRef={userCamRef} />
         ) : (
-          <div className="animate-pulse flex flex-col items-center justify-center text-slate-500">
+          <div className="flex flex-col items-center justify-center text-slate-500 py-12">
             <div className="w-16 h-16 border-4 border-slate-600 border-t-primary rounded-full animate-spin mb-4"></div>
             <p>Membangun koneksi aman...</p>
           </div>

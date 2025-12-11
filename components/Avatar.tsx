@@ -63,6 +63,7 @@ const Scene: React.FC<AvatarProps> = ({ volume, isActive }) => {
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
         <OrbitControls enableZoom={false} enableRotate={false} />
+
       </>
     );
   };
