@@ -53,7 +53,7 @@ const App: React.FC = () => {
 
   // Config/Session View
   return (
-    <div className=" bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
+    <div className="min-h-screen bg-dark text-white font-sans selection:bg-primary selection:text-white overflow-hidden relative">
 
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]"></div>
@@ -61,11 +61,11 @@ const App: React.FC = () => {
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        <header className="p-6 flex items-center justify-between">
+        {/* <header className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => !config && setShowLanding(true)}>
-            {/* <h1 className="text-3xl font-bold tracking-tight">Interviu</h1> */}
+            <h1 className="text-3xl font-bold tracking-tight">Interviu</h1>
           </div>
-        </header>
+        </header> */}
 
         <main className="flex-1 flex flex-col items-center justify-center p-4">
           {!config ? (

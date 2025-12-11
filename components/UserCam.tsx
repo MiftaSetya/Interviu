@@ -67,10 +67,6 @@ const UserCam = forwardRef<UserCamHandle>((_, ref) => {
         muted
       />
 
-      <div className="absolute top-5 left-5 text-white font-semibold rounded-md backdrop-blur-md">
-        Kamera anda
-      </div>
-
       <div className="pointer-events-none absolute top-0 left-0 w-full h-10 
       bg-gradient-to-b from-black/40 to-transparent" />
 

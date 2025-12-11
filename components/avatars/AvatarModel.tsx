@@ -56,12 +56,13 @@ export function AvatarModel({
       // SkeletonUtils.retargetClip expects (sourceRoot, targetRoot, clip)
       // Source root: idleFbx (or a child that contains bones), target root: sceneClone
       // Some FBX loaders store the skinned mesh inside children[0], so we try that first
-      const sourceRoot = (idleFbx && (idleFbx.children && idleFbx.children.length ? idleFbx.children[0] : idleFbx)) as THREE.Object3D;
-      const targetRoot = sceneClone as THREE.Object3D;
+      // const sourceRoot = (idleFbx && (idleFbx.children && idleFbx.children.length ? idleFbx.children[0] : idleFbx)) as THREE.Object3D;
+      // const targetRoot = sceneClone as THREE.Object3D;
 
-      const ret = SkeletonUtils.retargetClip(sourceRoot, targetRoot, srcClip);
-      ret.name = srcClip.name || "Idle";
-      return [ret];
+      // const ret = SkeletonUtils.retargetClip(sourceRoot, targetRoot, srcClip);
+      // ret.name = srcClip.name || "Idle";
+      // return [ret];
+      return [srcClip];
     } catch (err) {
       // If retargeting fails, we fallback to using the original clip (best-effort)
       console.warn("Retarget failed, falling back to original clip. Error:", err);
@@ -129,7 +130,7 @@ export function AvatarModel({
       const chosen = randomNonSil();
 
       // intensity driven by normalized volume (0..1) with min 0.1
-      const intensity = Math.min(1, Math.max(0.1, volume / 255));
+      const intensity = Math.min(1, Math.max(0.3, volume / 255));
       safeSetViseme(chosen, intensity);
 
       // schedule next tick with random delay (80 - 150 ms)

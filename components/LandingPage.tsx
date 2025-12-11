@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Sparkles, Mic, Brain, Zap, ArrowRight, Plus, Minus } from 'lucide-react';
-import mobileScore from '../assets/mobile_score.png';
-import mobileFeedback from '../assets/mobile_feedback.png';
-import mobileLanding from '../assets/mobile_landing.png';
-import mobileCall from '../assets/mobile_call.jpg';
+import mobileScore from '../public/assets/mobile_score.png';
+import mobileFeedback from '../public/assets/mobile_feedback.png';
+import mobileLanding from '../public/assets/mobile_landing.png';
+import mobileCall from '../public/assets/mobile_call.jpg';
 
 interface LandingPageProps {
     onGetStarted: () => void;
