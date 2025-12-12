@@ -1,11 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { InterviewConfig } from './types';
 import LandingPage from './components/LandingPage';
 import ConfigForm from './components/ConfigForm';
 import SessionView from './components/SessionView';
 import ResultView from './components/ResultView';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const App: React.FC = () => {
+  useEffect(() => {
+AOS.init({
+offset: 200,
+duration: 600,
+easing: 'ease-in-sine',
+delay: 100,
+});
+}, []);
+
   const [showLanding, setShowLanding] = useState(true);
   const [result, setResult] = useState("");
   const [showResult, setShowResult] = useState(false);

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import AOS from 'aos';
 import { Mic, MicOff, PhoneOff, Settings2, AlertCircle } from 'lucide-react';
 import { useGeminiLive } from '../hooks/useGeminiLive';
 import { InterviewConfig } from '../types';
@@ -74,6 +75,10 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
     return () => disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once
+
+  useEffect(() => {
+    AOS.refresh();
+  }, [isConnected, isFinishing]);
 
   const generateResult = async () => {
     try {
