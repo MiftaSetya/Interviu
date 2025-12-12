@@ -261,7 +261,7 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
 
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10 w-full">
                 <Lightbulb className="text-violet-400 w-6 h-6" />
-                Rekomendasi Strategis
+                Rekomendasi
               </h3>
 
               {/* Logic to handle Intro sentence vs Steps */}
