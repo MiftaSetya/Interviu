@@ -6,6 +6,7 @@ import AudioVisualizer from './AudioVisualizer';
 import InterviewRoom from './InterviewRoom';
 import type { UserCamHandle } from './UserCam';
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiKeys } from '@/lib/getGeminiKey';
 
 interface SessionViewProps {
   config: InterviewConfig;
@@ -74,17 +75,31 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once
 
-  // PATCH: Generate interview evaluation after session
   const generateResult = async () => {
     try {
-      const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-      if (!apiKey) {
+      const keys = getGeminiKeys();
+      if (!keys || keys.length === 0) {
         throw new Error("API Key tidak ditemukan. Pastikan konfigurasi .env benar.");
       }
 
+      let ai: GoogleGenAI | null = null;
+      let lastError: any = null;
+
       console.log(transcript);
 
-      const ai = new GoogleGenAI({ apiKey });
+      for (const key of keys) {
+        try {
+          ai = new GoogleGenAI({ apiKey: key });
+          break;
+        } catch (err) {
+          ai = null;
+          lastError = err;
+        }
+      }
+
+      if (!ai) {
+        throw lastError || new Error("Semua Gemini API Key gagal dipakai.");
+      }
 
       const conversationText = transcript.length > 0
         ? transcript.join("\n")

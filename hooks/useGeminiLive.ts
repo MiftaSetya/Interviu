@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { InterviewConfig } from '../types';
 import { createPcmBlob, decodeAudioData, base64ToUint8Array } from '../utils/audioUtils';
+import { getGeminiKeys } from '@/lib/getGeminiKey';
 
 // Model configuration
 const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-09-2025';
@@ -138,12 +139,24 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
   const connect = useCallback(async () => {
     if (!config) return;
 
+    const keys = getGeminiKeys();
+    let ai: GoogleGenAI | null = null;
+    let lastError: any = null
+
+    for(const key of keys) {
+      try {
+        ai = new GoogleGenAI({ apiKey: key });
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    if (!ai) {
+      throw lastError || new Error("All Gemini API keys failed.");  
+    }
+
     try {
-      const apiKey = process.env.API_KEY;
-      if (!apiKey) throw new Error("API_KEY not found in environment");
-
-      const ai = new GoogleGenAI({ apiKey });
-
       // Audio Contexts
       // Input: 16kHz for Gemini
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
