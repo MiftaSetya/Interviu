@@ -422,8 +422,8 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
                 fontSize: 10,
                 cellPadding: { top: 2, bottom: 2, left: 0, right: 0 },
                 textColor: 60,
-                valign: 'top',
-                overflow: 'linebreak'
+                valign: 'top' as const,
+                overflow: 'linebreak' as const
               };
 
               // STRENGTHS
