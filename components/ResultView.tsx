@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
+import AOS from 'aos';
 import { CheckCircle, AlertTriangle, Lightbulb, FileText, ArrowLeft, Download, Trophy, Star, TrendingUp } from "lucide-react";
 
 import jsPDF from 'jspdf';
@@ -103,6 +104,10 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
 
   const grade = getGrade(data.score);
 
+  useEffect(() => {
+    AOS.refresh();
+  }, []);
+
   return (
     <div className="w-full max-w-7xl mx-auto p-4 md:p-8 pb-48 animate-fade-in text-white/90">
 
@@ -112,15 +117,15 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
         <div className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px]"></div>
       </div>
 
-      <header className="flex items-center justify-between mb-10">
+      <header data-aos="fade-up" className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+          <h1 data-aos="fade-up" className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             Laporan Wawancara
           </h1>
           <p className="text-slate-500">Evaluasi berbasis AI</p>
         </div>
         {!isRaw && (
-          <div className={`px-4 py-1.5 rounded-full border border-white/10 ${grade.bg} ${grade.color} font-medium text-sm flex items-center gap-2`}>
+          <div data-aos="fade-up" className={`px-4 py-1.5 rounded-full border border-white/10 ${grade.bg} ${grade.color} font-medium text-sm flex items-center gap-2`}>
             <TrendingUp size={16} />
             {grade.label}
           </div>
@@ -140,10 +145,10 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* LEFT COL: SCORE & SUMMARY */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
+          <div data-aos="fade-up" className="lg:col-span-4 flex flex-col gap-6">
 
             {/* Score Card */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/80 to-slate-800/80 border border-slate-700/50 p-8 rounded-3xl backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center min-h-[300px] group hover:border-primary/30 transition-all duration-500">
+            <div data-aos="fade-up" className="relative overflow-hidden bg-gradient-to-br from-slate-900/80 to-slate-800/80 border border-slate-700/50 p-8 rounded-3xl backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center min-h-[300px] group hover:border-primary/30 transition-all duration-500">
               <div className="absolute inset-0 bg-grid-white/[0.02] bg-[length:20px_20px]"></div>
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-[60px]"></div>
 
@@ -173,7 +178,7 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
             </div>
 
             {/* Summary Minimal Card */}
-            <div className="relative bg-gradient-to-br from-blue-900/20 to-slate-900/60 border border-blue-500/20 p-6 rounded-3xl backdrop-blur-md overflow-hidden group hover:border-blue-500/40 transition-all">
+            <div data-aos="fade-up" className="relative bg-gradient-to-br from-blue-900/20 to-slate-900/60 border border-blue-500/20 p-6 rounded-3xl backdrop-blur-md overflow-hidden group hover:border-blue-500/40 transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[50px] group-hover:bg-blue-500/20 transition-all"></div>
 
               <h3 className="relative z-10 text-lg font-bold text-white mb-4 flex items-center gap-2">
@@ -187,13 +192,13 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
           </div>
 
           {/* MIDDLE/RIGHT COL: DETAILED FEEDBACK */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div data-aos="fade-up" className="lg:col-span-8 flex flex-col gap-6">
 
             {/* Bento Grid for Strengths & Weaknesses */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+              <div data-aos="fade-up" className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
 
               {/* Strengths */}
-              <div className="bg-gradient-to-br from-emerald-900/20 to-slate-900/60 border border-emerald-500/20 hover:border-emerald-500/40 p-6 rounded-3xl backdrop-blur-md transition-all group">
+              <div data-aos="fade-up" className="bg-gradient-to-br from-emerald-900/20 to-slate-900/60 border border-emerald-500/20 hover:border-emerald-500/40 p-6 rounded-3xl backdrop-blur-md transition-all group">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-emerald-500/20 rounded-2xl text-emerald-400 group-hover:scale-110 transition-transform">
                     <Star className="w-6 h-6 fill-current" />
@@ -224,7 +229,7 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
               </div>
 
               {/* Weaknesses */}
-              <div className="bg-gradient-to-br from-red-900/20 to-slate-900/60 border border-red-500/20 hover:border-red-500/40 p-6 rounded-3xl backdrop-blur-md transition-all group">
+              <div data-aos="fade-up" className="bg-gradient-to-br from-red-900/20 to-slate-900/60 border border-red-500/20 hover:border-red-500/40 p-6 rounded-3xl backdrop-blur-md transition-all group">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-red-500/20 rounded-2xl text-red-400 group-hover:scale-110 transition-transform">
                     <AlertTriangle className="w-6 h-6" />
@@ -256,7 +261,7 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
             </div>
 
             {/* Recommendations (Wide Card) */}
-            <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-8 rounded-3xl backdrop-blur-md relative overflow-visible mb-8">
+            <div data-aos="fade-up" className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 border border-violet-500/20 p-8 rounded-3xl backdrop-blur-md relative overflow-visible mb-8">
               <div className="absolute top-0 right-0 p-32 bg-violet-500/10 blur-[80px] rounded-full pointer-events-none"></div>
 
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10 w-full">

@@ -10,42 +10,7 @@ interface AvatarProps {
   isActive: boolean;
 }
 
-// const AvatarModel: React.FC<AvatarProps> = ({ volume, isActive }) => {
-//   const { scene } = useGLTF("/assets/avatar.glb");
 
-//   // Cari index morph target hanya sekali
-//   const jawIndex = useMemo(() => {
-//     let index: number | null = null;
-//     scene.traverse((obj: any) => {
-//       if (obj.morphTargetDictionary && index === null) {
-//         index = obj.morphTargetDictionary["jawOpen"];
-//       }
-//     });
-//     return index;
-//   }, [scene]);
-
-//   // animasi mulut realtime
-//   let current = 0;
-
-
-
-
-//   useFrame(() => {
-//     if (!jawIndex) return;
-    
-//     const target = isActive ? (volume / 255) * 0.6 : 0; // Mulut buka berdasarkan volume
-    
-//     scene.traverse((obj: any) => {
-//       if (obj.morphTargetInfluences) {
-//         current += (target - current) * 0.2; // smoothing
-//         obj.morphTargetInfluences[jawIndex] = current;
-//       }
-//     });
-//   });
-
-//   return <primitive object={scene} scale={3}
-//     position={[0, -5, 0]} />;
-// };
 const Scene: React.FC<AvatarProps> = ({ volume, isActive }) => {
     const texture = useTexture('/assets/avatar-bg.jpg');
     const viewport = useThree((state) => state.viewport);
@@ -79,31 +44,6 @@ const Avatar: React.FC<AvatarProps> = ({ volume, isActive }) => {
   );
 };
 
-// const Avatar: React.FC<AudioVisualizerProps> = ({ volume, isActive }) => {
-//   const containerRef = useRef<HTMLDivElement>(null);
 
-//   const { scene } = useGLTF("../assets/avatar.glb")
-//     return <primitive object={scene} />
-
-//   useEffect(() => {
-//     // nanti load three.js viewer di sini
-//     // containerRef.current adalah target DOM-nya
-
-//     // contoh init (pseudo):
-//     // const renderer = new THREE.WebGLRenderer();
-//     // containerRef.current.appendChild(renderer.domElement);
-
-//   }, []);
-
-//   return (
-//     <div
-//       ref={containerRef}
-//       className="w-full h-full flex items-center justify-center text-slate-400 text-sm"
-//     >
-//       {/* sementara text placeholder */}
-//       <span className="opacity-50">Memuat Avatar AI...</span>
-//     </div>
-//   );
-// };
 
 export default Avatar;

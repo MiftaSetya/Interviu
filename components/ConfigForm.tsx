@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import AOS from 'aos';
 import { InterviewConfig } from '../types';
 import { ArrowRight, Mic, MicOff, Video, VideoOff, AlertCircle, X, ChevronLeft } from 'lucide-react';
 import UserCam, { UserCamHandle } from '../components/UserCam';
@@ -27,6 +28,8 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // refresh AOS on mount and when modal visibility changes
+    AOS.refresh();
     // Start or stop mic audio analysis
     const startMic = async () => {
       try {
@@ -85,6 +88,10 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
     return () => stopMic();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micOn]);
+
+  useEffect(() => {
+    AOS.refresh();
+  }, [showError, cameraOn, micOn]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,9 +170,9 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
 
       {/* Main content */}
     <div className='px-4 md:px-20 flex flex-col justify-center'>
-      <button
+        <button
           onClick={() => window.location.reload()}
-          className="mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-primary/50 text-slate-300 hover:text-white transition-all duration-300 hover:gap-3 w-fit"
+          className="mb-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 text-slate-300 hover:text-white transition-all duration-300 w-fit"
           title="Kembali ke halaman sebelumnya"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -177,7 +184,7 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
 
       
 
-      <div className={`w-full h-full relative bg-gradient-to-br from-secondary/10 to-primary/10
+        <div className={`w-full h-full relative bg-gradient-to-br from-secondary/10 to-primary/10
           ${isSpeaking ? 'border-2 border-primary' : 'border border-primary/30'} rounded-2xl shadow-2xl overflow-hidden
           backdrop-blur-md flex items-center justify-center col-span-1 md:col-span-3`}>
         <div className="w-full h-full rounded-xl overflow-hidden bg-black/40 flex items-center justify-center">
@@ -227,9 +234,9 @@ const ConfigForm: React.FC<ConfigFormProps> = ({ onStart }) => {
         </div>
       </div>
 
-      <div className="w-full bg-surface/50 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-xl border border-slate-700/50 col-span-1 md:col-span-2">
+      <div data-aos="fade-up" data-aos-delay="50" className="w-full bg-surface/50 backdrop-blur-sm p-6 md:p-8 rounded-2xl shadow-xl border border-slate-700/50 col-span-1 md:col-span-2">
 
-        <h2 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
 
           Setup Wawancara
 
