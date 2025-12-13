@@ -19,7 +19,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <section className="flex-1 flex items-center justify-center px-4 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto text-center relative z-10">
                     <div className='h-screen flex flex-col justify-center items-center'>
-                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-5xl md:text-9xl font-bold mb-10 mt-20">
+                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-5xl md:text-8xl font-bold mb-10 mt-20">
                             <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-pulse-slow">
                                 Siapkan Karirmu
                             </span>
