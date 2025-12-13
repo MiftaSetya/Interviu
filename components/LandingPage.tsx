@@ -10,16 +10,16 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
-    useEffect(() => {
-        AOS.refresh();
-    }, []);
+    // useEffect(() => {
+    //     AOS.refresh();
+    // }, []);
 
     return (
         <div className="min-h-screen flex flex-col">
             <section className="flex-1 flex items-center justify-center px-4 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto text-center relative z-10">
                     <div className='h-screen flex flex-col justify-center items-center'>
-                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-5xl md:text-8xl font-bold mb-10 mt-20">
+                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-4xl md:text-8xl font-bold mb-10 mt-20">
                             <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-pulse-slow">
                                 Siapkan Karirmu
                             </span>
@@ -27,7 +27,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             <span className="text-white">Dengan Interviu</span>
                         </h1>
 
-                        <p data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" data-aos-delay="80" className="text-lg md:text-2xl text-slate-400 mb-12 max-w-5xl mx-auto leading-relaxed">
+                        <p data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" data-aos-delay="80" className="text-sm md:text-2xl text-slate-400 mb-12 max-w-5xl mx-auto leading-relaxed">
                             Latihan wawancara realistis dengan teknologi AI berbahasa Indonesia.
                             Dapatkan feedback instan, tingkatkan kemampuan, dan raih pekerjaan atau beasiswa impianmu.
                         </p>
@@ -35,7 +35,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                         <div data-aos="fade-up" data-aos-delay="500" data-aos-anchor-placement="bottom-bottom" className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
                             <button
                                 onClick={onGetStarted}
-                                className="group px-8 py-4 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-bold text-lg transition-all transform hover:scale-105 hover:shadow-2xl hover:shadow-primary/50 flex items-center gap-3"
+                                className="group px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-bold text-md md:text-lg transition-all transform hover:scale-105 hover:shadow-2xl hover:shadow-primary/50 flex items-center gap-3"
                             >
                                 Mulai Sekarang
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -70,7 +70,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                         </div>
                     </div>
 
-                    <div id="features" data-aos="fade-up" className=" grid grid-cols-1 md:grid-cols-3 gap-6 mt-56 md:mt-10">
+                    <div id="features"  className=" grid grid-cols-1 md:grid-cols-3 gap-6 mt-56 md:mt-10">
                         <FeatureCard
 
                             icon={<Mic className="w-8 h-8" />}
@@ -103,7 +103,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             </p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4" data-aos="fade-up">
                             {faqs.map((faq, index) => (
                                 <FAQItem key={index} question={faq.question} answer={faq.answer} />
                             ))}
@@ -124,7 +124,7 @@ interface FeatureCardProps {
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gradient, }) => {
     return (
-        <div className={`group p-6 rounded-2xl bg-gradient-to-br ${gradient} border border-slate-800/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:scale-105 hover:shadow-xl hover:shadow-primary/10`}>
+        <div data-aos="fade-up" className={`group p-6 rounded-2xl bg-gradient-to-br ${gradient} border border-slate-800/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:scale-105 hover:shadow-xl hover:shadow-primary/10`}>
             <div className="flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                 {icon}
             </div>
@@ -156,10 +156,10 @@ const faqs = [
 const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    useEffect(() => {
-        // When FAQ expands/collapses ensure AOS recalculates positions
-        AOS.refresh();
-    }, [isOpen]);
+    // useEffect(() => {
+    //     When FAQ expands/collapses ensure AOS recalculates positions
+    //     AOS.refresh();
+    // }, [isOpen]);
 
     return (
          <div
@@ -167,7 +167,7 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
                 ? 'bg-surface/80 border-primary/50 shadow-lg shadow-primary/10'
                 : 'bg-surface/30 border-white/10 hover:bg-surface/50'
                 }`}
-                data-aos="fade-up"
+                
         >
             <button
                 onClick={() => setIsOpen(!isOpen)}
@@ -181,9 +181,9 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
                 </span>
             </button>
             <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-content opacity-100' : 'max-h-0 opacity-0'}`}
             >
-                <div className="p-6 pt-0 text-slate-300 leading-relaxed border-t border-white/5 mt-2 text-left">
+                <div className="p-6 pt-0 text-slate-300 leading-relaxed border-t border-white/5 mt-3 text-left">
                     {answer}
                 </div>
             </div>
