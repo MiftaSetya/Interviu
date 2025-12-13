@@ -29,7 +29,8 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
     isMicOn,
     toggleMic,
     volumeLevel,
-    transcript
+    transcript,
+    userVolume
   } = useGeminiLive({
     config,
     onDisconnect: () => {
@@ -42,32 +43,115 @@ const SessionView: React.FC<SessionViewProps> = ({ config, onEnd, onResult }) =>
 
   const [isFinishing, setIsFinishing] = useState(false);
   const userCamRef = useRef<UserCamHandle | null>(null);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
-  // Play opening sound once when connection is established
+  // Opening playback control
+  const openingPendingRef = useRef(false);
+  const openingFallbackTimerRef = useRef<number | null>(null);
+  const openingMutedBySystemRef = useRef(false);
+
+  // Determine speaking flags
+  const aiIsSpeaking = volumeLevel > 8; // threshold for AI output (0-255)
+  const userIsSpeaking = isMicOn && userVolume > 0.03; // only true when mic is on
+
+  // Play opening sound once when connection is established, but wait for avatar
   const openingAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Handler when avatar signals it is loaded
+  const handleAvatarLoaded = () => {
+    setAvatarLoaded(true);
+  };
+
+  // Effect to orchestrate opening sound: waits for avatar or falls back after timeout
   useEffect(() => {
-    if (!isConnected) return;
-    try {
-      if (!openingAudioRef.current) {
-        openingAudioRef.current = new Audio('/assets/opening.mp3');
-        openingAudioRef.current.preload = 'auto';
-      }
-      const playPromise = openingAudioRef.current.play();
-      if (playPromise instanceof Promise) {
-        playPromise.catch(() => {
-          // autoplay might be blocked by browser; ignore
-        });
-      }
-    } catch (e) {
-      // ignore errors
-    }
-    return () => {
-      // optional: pause/rewind when disconnected
-      if (!isConnected && openingAudioRef.current) {
-        try { openingAudioRef.current.pause(); openingAudioRef.current.currentTime = 0; } catch (e) { }
+    const cleanupPending = () => {
+      openingPendingRef.current = false;
+      if (openingFallbackTimerRef.current) {
+        clearTimeout(openingFallbackTimerRef.current as any);
+        openingFallbackTimerRef.current = null;
       }
     };
-  }, [isConnected]);
+
+    const playOpening = async () => {
+      try {
+        if (!openingAudioRef.current) {
+          openingAudioRef.current = new Audio('/assets/opening.mp3');
+          openingAudioRef.current.preload = 'auto';
+        }
+
+        // If mic is on, mute it temporarily
+        if (isMicOn) {
+          try {
+            toggleMic();
+            openingMutedBySystemRef.current = true;
+          } catch (e) {}
+        }
+
+        const playPromise = openingAudioRef.current.play();
+        if (playPromise instanceof Promise) {
+          playPromise.catch(() => {
+            // autoplay might be blocked; ignore and restore mic
+            if (openingMutedBySystemRef.current && !isMicOn) {
+              try { toggleMic(); } catch (e) {}
+              openingMutedBySystemRef.current = false;
+            }
+          });
+        }
+
+        // restore mic when audio ends
+        openingAudioRef.current.onended = () => {
+          if (openingMutedBySystemRef.current && !isMicOn) {
+            try { toggleMic(); } catch (e) {}
+          }
+          openingMutedBySystemRef.current = false;
+          openingAudioRef.current && (openingAudioRef.current.onended = null);
+        };
+      } catch (e) {
+        // on error, ensure we restore mic
+        if (openingMutedBySystemRef.current && !isMicOn) {
+          try { toggleMic(); } catch (err) {}
+        }
+        openingMutedBySystemRef.current = false;
+      }
+    };
+
+    if (isConnected) {
+      // if avatar already loaded, play immediately
+      if (avatarLoaded) {
+        cleanupPending();
+        playOpening();
+      } else {
+        // otherwise queue opening until avatarLoaded or fallback after 5s
+        openingPendingRef.current = true;
+        openingFallbackTimerRef.current = window.setTimeout(() => {
+          if (openingPendingRef.current) {
+            playOpening();
+            openingPendingRef.current = false;
+            openingFallbackTimerRef.current = null;
+          }
+        }, 5000) as unknown as number;
+      }
+    } else {
+      // disconnected -> cancel any pending or playing opening
+      cleanupPending();
+      if (openingAudioRef.current) {
+        try { openingAudioRef.current.pause(); openingAudioRef.current.currentTime = 0; openingAudioRef.current.onended = null; } catch (e) {}
+      }
+      // restore mic if the system muted it earlier
+      if (openingMutedBySystemRef.current && !isMicOn) {
+        try { toggleMic(); } catch (e) {}
+        openingMutedBySystemRef.current = false;
+      }
+    }
+
+    return () => {
+      // clear fallback timer when deps change
+      if (openingFallbackTimerRef.current) { clearTimeout(openingFallbackTimerRef.current as any); openingFallbackTimerRef.current = null; }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, avatarLoaded]);
+
+  
 
   // Auto-connect on mount
   useEffect(() => {
@@ -220,7 +304,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
       {/* Visualizer Area */}
       <div className="relative w-full h-full md:w-full md:h-80 mb-8 lg:mb-44 md:mb-2 flex items-center justify-center">
         {isConnected ? (
-          <InterviewRoom volume={volumeLevel} isActive={isMicOn} userCamRef={userCamRef} />
+          <InterviewRoom volume={volumeLevel} isActive={isMicOn} userCamRef={userCamRef} aiSpeaking={aiIsSpeaking} userSpeaking={userIsSpeaking} onAvatarLoaded={handleAvatarLoaded} />
         ) : (
           <div className="flex flex-col items-center justify-center text-slate-500 py-12">
             <div className="w-16 h-16 border-4 border-slate-600 border-t-primary rounded-full animate-spin mb-4"></div>
@@ -236,7 +320,7 @@ _Silakan cek koneksi internet atau konfigurasi API Key Anda._
           disabled={!isConnected || isFinishing}
           className={`p-6 rounded-full shadow-lg transition-all transform hover:scale-110 ${isMicOn
             ? 'bg-slate-700 text-white hover:bg-slate-600'
-            : 'bg-red-500 text-white hover:bg-red-600'
+            : 'bg-red-600 text-white hover:bg-red-700'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           title={isMicOn ? "Matikan Mikrofon" : "Nyalakan Mikrofon"}
         >

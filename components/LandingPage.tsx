@@ -93,7 +93,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
 
                     {/* FAQ Section */}
-                    <div className="h-screen w-full flex flex-col justify-center max-w-6xl mx-auto mt-20 mb-10 relative z-10">
+                    <div className="min-h-screen w-full flex flex-col justify-center max-w-6xl mx-auto mt-20 mb-20 relative z-10">
                         <div data-aos="fade-up" className="text-center mb-12">
                             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
                                 Pertanyaan Umum
@@ -162,13 +162,12 @@ const FAQItem: React.FC<{ question: string; answer: string }> = ({ question, ans
     }, [isOpen]);
 
     return (
-        <div
+         <div
             className={`border rounded-xl transition-all duration-300 ${isOpen
                 ? 'bg-surface/80 border-primary/50 shadow-lg shadow-primary/10'
                 : 'bg-surface/30 border-white/10 hover:bg-surface/50'
                 }`}
-            data-aos="fade-up"
-            data-aos-delay="100"
+                data-aos="fade-up"
         >
             <button
                 onClick={() => setIsOpen(!isOpen)}

@@ -33,10 +33,20 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
 
   // Analyser for visualizer
   const analyserRef = useRef<AnalyserNode | null>(null);
+  // Analyser for the input (user mic) to detect when user is speaking
+  const inputAnalyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   // Transcript storage
   const [transcript, setTranscript] = useState<string[]>([]);
+  // User input level (RMS 0-1)
+  const [userVolume, setUserVolume] = useState<number>(0);
+  // Keep a ref of isMicOn to make it readable inside long-lived callbacks
+  const isMicOnRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    isMicOnRef.current = isMicOn;
+  }, [isMicOn]);
 
   // Speech Recognition for User Transcript
   useEffect(() => {
@@ -178,6 +188,16 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
       });
       streamRef.current = stream;
 
+      // Create an input analyser for speech detection (user)
+      if (inputAudioContextRef.current) {
+        const inputSource = inputAudioContextRef.current.createMediaStreamSource(streamRef.current);
+        const inputAnalyser = inputAudioContextRef.current.createAnalyser();
+        inputAnalyser.fftSize = 2048;
+        inputAnalyserRef.current = inputAnalyser;
+        // connect source to analyser for sampling (but do not connect analyser to destination)
+        inputSource.connect(inputAnalyserRef.current);
+      }
+
       // Ensure audio context is running
       await audioContextRef.current.resume();
 
@@ -231,14 +251,15 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
             processorRef.current = scriptProcessor;
 
             scriptProcessor.onaudioprocess = (e) => {
-              if (!isMicOn || !sessionPromiseRef.current) return; // Mute logic or session closed
+              // Read from ref to respect latest mute/unmute state inside this long-lived callback
+              if (!isMicOnRef.current || !sessionPromiseRef.current) return; // Mute logic or session closed
 
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmBlob = createPcmBlob(inputData);
               sessionPromiseRef.current?.then(session => {
                 try {
                   session.sendRealtimeInput({ media: pcmBlob });
-                } catch (e) {
+                } catch (err) {
                   // Session might be closed
                 }
               });
@@ -358,6 +379,23 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
         setVolumeLevel(average); // 0 - 255
 
+              // sample input analyser if available to detect user speaking
+              if (inputAnalyserRef.current && inputAudioContextRef.current && isMicOnRef.current) {
+                const size = inputAnalyserRef.current.frequencyBinCount || 2048;
+                const timeData = new Uint8Array(size);
+                inputAnalyserRef.current.getByteTimeDomainData(timeData);
+                let sum = 0;
+                for (let i = 0; i < timeData.length; i++) {
+                  const v = (timeData[i] - 128) / 128;
+                  sum += v * v;
+                }
+                const rms = Math.sqrt(sum / timeData.length);
+                setUserVolume(rms); // 0-1
+              } else {
+                // If mic muted or analyser missing, ensure value is zero
+                setUserVolume(0);
+              }
+
         animationFrameRef.current = requestAnimationFrame(updateVisualizer);
       };
       updateVisualizer();
@@ -384,6 +422,7 @@ export const useGeminiLive = ({ config, onConnect, onDisconnect, onError }: UseG
     isMicOn,
     toggleMic,
     volumeLevel,
-    transcript
+    transcript,
+    userVolume
   };
 };

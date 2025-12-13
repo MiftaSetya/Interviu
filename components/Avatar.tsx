@@ -8,10 +8,11 @@ import { AvatarModel } from "./avatars/AvatarModel";
 interface AvatarProps {
   volume: number; // 0 - 255
   isActive: boolean;
+  onLoaded?: () => void;
 }
 
 
-const Scene: React.FC<AvatarProps> = ({ volume, isActive }) => {
+const Scene: React.FC<AvatarProps> = ({ volume, isActive, onLoaded }) => {
     const texture = useTexture('/assets/avatar-bg.jpg');
     const viewport = useThree((state) => state.viewport);
 
@@ -20,7 +21,7 @@ const Scene: React.FC<AvatarProps> = ({ volume, isActive }) => {
         <ambientLight intensity={0.8} />
         <directionalLight position={[2, 2, 2]} intensity={0.5} />
 
-        <AvatarModel volume={volume} isActive={isActive} />
+        <AvatarModel volume={volume} isActive={isActive} onLoaded={onLoaded} />
         <Environment preset="lobby" />
 
         <mesh>
@@ -33,12 +34,12 @@ const Scene: React.FC<AvatarProps> = ({ volume, isActive }) => {
     );
   };
 
-const Avatar: React.FC<AvatarProps> = ({ volume, isActive }) => {
+const Avatar: React.FC<AvatarProps> = ({ volume, isActive, onLoaded }) => {
 
   return (
     <div className="w-full h-full flex items-center justify-center text-slate-400 text-sm">
       <Canvas camera={{ position: [0, 0, 2.2], fov: 35 }}>
-        <Scene volume={volume} isActive={isActive} />
+        <Scene volume={volume} isActive={isActive} onLoaded={onLoaded} />
       </Canvas>
     </div>
   );
