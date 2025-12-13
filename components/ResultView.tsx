@@ -266,7 +266,7 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
 
               <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3 relative z-10 w-full">
                 <Lightbulb className="text-violet-400 w-6 h-6" />
-                Rekomendasi Strategis
+                Rekomendasi
               </h3>
 
               {/* Logic to handle Intro sentence vs Steps */}
@@ -327,107 +327,143 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
             onClick={() => {
               const doc = new jsPDF();
               const pageWidth = doc.internal.pageSize.getWidth();
+              const pageHeight = doc.internal.pageSize.getHeight();
               const margin = 20;
-              let y = 20;
+              let y = 30;
 
-              // Helper for text wrapping
-              const addText = (text: string, fontSize: number, bold = false, color = '#000000') => {
-                doc.setFontSize(fontSize);
-                doc.setTextColor(color);
-                doc.setFont("helvetica", bold ? "bold" : "normal");
-                const splitText = doc.splitTextToSize(text, pageWidth - margin * 2);
-                doc.text(splitText, margin, y);
-                y += splitText.length * fontSize * 0.5 + 5; // Simple line height approx
-              };
+              // --- TITLE & HEADER ---
+              doc.setFontSize(26);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(0, 0, 0);
+              doc.text("Laporan Wawancara", margin, y);
 
-              // HEADER
-              addText("Laporan Wawancara - AI Evaluation", 22, true, '#1e293b');
-              y += 5;
-
-              // META INFO
-              doc.setFontSize(10);
-              doc.setTextColor('#64748b');
-              const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-              if (config) {
-                doc.text(`Posisi: ${config.roleOrScholarshipName}`, margin, y);
-                y += 6;
-                doc.text(`Perusahaan: ${config.companyOrOrg}`, margin, y);
-                y += 6;
-              }
-              doc.text(`Tanggal: ${dateStr}`, margin, y);
               y += 15;
 
-              // SCORE
-              doc.setFillColor('#f1f5f9');
-              doc.roundedRect(margin, y, pageWidth - margin * 2, 40, 3, 3, 'F');
+              // Horizontal Divider
+              doc.setDrawColor(220, 220, 220);
+              doc.setLineWidth(0.5);
+              doc.line(margin, y, pageWidth - margin, y);
+              y += 15;
 
-              doc.setFontSize(40);
-              doc.setTextColor('#0ea5e9'); // Primary blue
+              // --- META INFO ---
+              doc.setFontSize(10);
+              doc.setTextColor(60, 60, 60);
+              const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+              const addMetaRow = (label: string, value: string) => {
+                doc.setFont("helvetica", "bold");
+                doc.text(label, margin, y);
+                doc.setFont("helvetica", "normal");
+                doc.text(value, margin + 35, y);
+                y += 6;
+              };
+
+              if (config) {
+                addMetaRow("Posisi:", config.roleOrScholarshipName);
+                addMetaRow("Perusahaan:", config.companyOrOrg);
+              }
+              addMetaRow("Tanggal:", dateStr);
+              y += 10;
+
+              // --- SCORE SECTION (Minimalist) ---
+              // Light background strip
+              doc.setFillColor(250, 250, 250);
+              doc.rect(margin, y, pageWidth - margin * 2, 50, 'F');
+
+              const scoreY = y + 33;
+
+              // Big Score
+              doc.setFontSize(42);
               doc.setFont("helvetica", "bold");
-              doc.text(`${data.score}`, margin + 10, y + 28);
+              doc.setTextColor(0, 0, 0);
+              const scoreText = `${data.score}`;
+              const scoreWidth = doc.getTextWidth(scoreText);
+              doc.text(scoreText, margin + 15, scoreY);
 
-              doc.setFontSize(12);
-              doc.setTextColor('#64748b');
-              doc.setFont("helvetica", "normal");
-              doc.text("/ 100", margin + 45, y + 28);
-
+              // "/ 100"
               doc.setFontSize(14);
-              doc.setTextColor('#334155');
-              doc.text("Skor Keseluruhan", margin + 70, y + 20);
+              doc.setTextColor(150, 150, 150);
+              doc.setFont("helvetica", "normal");
+              doc.text("/ 100", margin + 18 + scoreWidth, scoreY);
 
-              // Grade Label
+              // Grade & Label
               const grade = getGrade(data.score);
               doc.setFontSize(12);
-              doc.setTextColor(grade.color.replace('text-', '').replace('-400', '')); // Rough hack, better to hardcode colors or map them
-              // Let's just use standard colors based on score
-              const gradeColor = data.score >= 70 ? '#10b981' : data.score >= 50 ? '#eab308' : '#ef4444';
-              doc.setTextColor(gradeColor);
-              doc.text(grade.label, margin + 70, y + 28);
+              doc.setTextColor(80, 80, 80);
+              doc.text("Skor Keseluruhan", margin + 18 + scoreWidth + 45, scoreY - 10);
 
-              y += 50;
+              doc.setFontSize(16);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(0, 0, 0);
+              doc.text(grade.label, margin + 18 + scoreWidth + 45, scoreY + 2);
+
+              y += 70;
+
+              // --- SECTIONS ---
+              const addSectionTitle = (title: string) => {
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
+                doc.text(title, margin, y);
+                y += 10;
+              };
 
               // SUMMARY
-              addText("Ringkasan", 16, true, '#334155');
+              addSectionTitle("Ringkasan");
               doc.setFontSize(11);
-              doc.setTextColor('#475569');
+              doc.setTextColor(60, 60, 60);
               doc.setFont("helvetica", "normal");
               const summaryLines = doc.splitTextToSize(data.summary || "Tidak ada ringkasan.", pageWidth - margin * 2);
               doc.text(summaryLines, margin, y);
-              y += summaryLines.length * 6 + 10;
+              y += summaryLines.length * 6 + 15;
 
-              // STRENGTHS & WEAKNESSES TABLE
-              // We'll use autoTable for lists to keep them neat
+              // LIST STYLES
+              const listStyles = {
+                fontSize: 10,
+                cellPadding: { top: 2, bottom: 2, left: 0, right: 0 },
+                textColor: 60,
+                valign: 'top' as const,
+                overflow: 'linebreak' as const
+              };
 
+              // STRENGTHS
               if (data.strengths.length > 0) {
-                addText("Kelebihan", 14, true, '#10b981');
+                if (y > pageHeight - 60) { doc.addPage(); y = 30; }
+                addSectionTitle("Kelebihan");
+
+                const strengthBody = data.strengths
+                  .filter(s => s.trim().toLowerCase() !== 'kandidat')
+                  .map(s => ["•  " + s]);
+
+                // @ts-ignore
                 autoTable(doc, {
                   startY: y,
                   head: [],
-                  body: data.strengths.filter(s => s.trim().toLowerCase() !== 'kandidat').map(s => [s]),
+                  body: strengthBody,
                   theme: 'plain',
-                  styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
-                  columnStyles: { 0: { cellWidth: 'auto' } },
-                  margin: { left: margin },
+                  styles: listStyles,
+                  margin: { left: margin + 2 },
                   didDrawPage: (d) => { y = d.cursor.y + 10; }
                 });
-                // Update y after table
-                // autoTable modifies cursor, we need to read it from the last state but here we just approximate or let autoTable handle paging
-                // Since we are in an onclick, we can't easily get the final Y from the library in this simple way without assigning result
-                // Let's re-assign y properly:
                 // @ts-ignore
-                y = doc.lastAutoTable.finalY + 10;
+                y = doc.lastAutoTable.finalY + 15;
               }
 
+              // WEAKNESSES
               if (data.weaknesses.length > 0) {
-                addText("Kekurangan & Area Fokus", 14, true, '#ef4444');
+                if (y > pageHeight - 60) { doc.addPage(); y = 30; }
+                addSectionTitle("Kekurangan");
+
+                const weaknessBody = data.weaknesses.map(w => ["•  " + w]);
+
+                // @ts-ignore
                 autoTable(doc, {
                   startY: y,
                   head: [],
-                  body: data.weaknesses.map(w => [w]),
+                  body: weaknessBody,
                   theme: 'plain',
-                  styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
-                  margin: { left: margin },
+                  styles: listStyles,
+                  margin: { left: margin + 2 },
                 });
                 // @ts-ignore
                 y = doc.lastAutoTable.finalY + 15;
@@ -435,20 +471,20 @@ export default function ResultView({ feedback, config, onRestart }: ResultViewPr
 
               // RECOMMENDATIONS
               if (data.recommendations.length > 0) {
-                // Check paging
-                if (y > 250) { doc.addPage(); y = 20; }
+                if (y > pageHeight - 60) { doc.addPage(); y = 30; }
 
-                addText("Rekomendasi Strategis", 14, true, '#8b5cf6');
+                addSectionTitle("Rekomendasi");
 
                 const recBody = data.recommendations.map((rec, i) => [`${i + 1}.`, rec]);
 
+                // @ts-ignore
                 autoTable(doc, {
                   startY: y,
                   head: [],
                   body: recBody,
-                  theme: 'striped',
-                  styles: { fontSize: 10, cellPadding: 4 },
-                  columnStyles: { 0: { cellWidth: 10, fontStyle: 'bold' } },
+                  theme: 'plain',
+                  styles: { ...listStyles, cellPadding: { ...listStyles.cellPadding, bottom: 6 } },
+                  columnStyles: { 0: { cellWidth: 10, fontStyle: 'bold', textColor: 0 } },
                   margin: { left: margin },
                 });
               }
