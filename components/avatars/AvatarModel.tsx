@@ -14,6 +14,7 @@ import { SkeletonUtils } from "three-stdlib";
 interface AvatarProps {
   volume: number; // 0 - 255
   isActive: boolean;
+  onLoaded?: () => void;
 }
 
 const VISEMES = [
@@ -27,6 +28,7 @@ type GLTFResult = any; // we only use it for initial useGLTF typing; nodes from 
 export function AvatarModel({
   isActive,
   volume,
+  onLoaded,
   ...props
 }: JSX.IntrinsicElements["group"] & AvatarProps) {
   const wrapperGroup = useRef<THREE.Group | null>(null);
@@ -167,6 +169,15 @@ export function AvatarModel({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, volume, nodes]);
+
+  // Notify parent when model is ready (nodes available and actions setup)
+  const loadedNotifiedRef = useRef(false);
+  useEffect(() => {
+    if (!loadedNotifiedRef.current && nodes) {
+      loadedNotifiedRef.current = true;
+      try { onLoaded?.(); } catch (e) { }
+    }
+  }, [nodes, onLoaded]);
 
   // ensure silent initially until checks run
   useEffect(() => {
