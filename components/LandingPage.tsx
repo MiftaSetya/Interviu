@@ -17,19 +17,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     return (
         <div className="min-h-screen flex flex-col">
             <section className="flex-1 flex items-center justify-center px-4 relative overflow-hidden">
-                {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow"></div>
-                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
-                        
-                    <div className="absolute top-20 right-20 w-12 h-12 border-2 border-primary/30 rounded-lg rotate-45 animate-pulse"></div>
-                    <div className="absolute bottom-40 left-20 w-16 h-16 border-2 border-secondary/30 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                    <div className="absolute top-1/2 right-1/3 w-8 h-8 bg-gradient-to-br from-primary/20 to-secondary/20 rounded animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-                </div> */}
-
-
                 <div className="max-w-7xl mx-auto text-center relative z-10">
                     <div className='h-screen flex flex-col justify-center items-center'>
-                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-5xl md:text-7xl font-bold mb-6 mt-20">
+                        <h1 data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" className="text-5xl md:text-9xl font-bold mb-10 mt-20">
                             <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-pulse-slow">
                                 Siapkan Karirmu
                             </span>
@@ -37,7 +27,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                             <span className="text-white">Dengan Interviu</span>
                         </h1>
 
-                        <p data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" data-aos-delay="80" className="text-lg md:text-xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                        <p data-aos="fade-up" data-aos-anchor-placement="bottom-bottom" data-aos-delay="80" className="text-lg md:text-2xl text-slate-400 mb-12 max-w-5xl mx-auto leading-relaxed">
                             Latihan wawancara realistis dengan teknologi AI berbahasa Indonesia.
                             Dapatkan feedback instan, tingkatkan kemampuan, dan raih pekerjaan atau beasiswa impianmu.
                         </p>
@@ -103,7 +93,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     </div>
 
                     {/* FAQ Section */}
-                    <div className="h-screen w-full flex flex-col justify-center max-w-6xl mx-auto mt-20 mb-20 relative z-10">
+                    <div className="h-screen w-full flex flex-col justify-center max-w-6xl mx-auto mt-20 mb-10 relative z-10">
                         <div data-aos="fade-up" className="text-center mb-12">
                             <h2 className="text-3xl md:text-5xl font-bold mb-4 text-white">
                                 Pertanyaan Umum
